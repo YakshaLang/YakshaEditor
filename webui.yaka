@@ -1,0 +1,332 @@
+import libs.c
+
+NoBrowser: Const[c.Size] = ccode "NoBrowser"
+AnyBrowser: Const[c.Size] = ccode "AnyBrowser"
+Chrome: Const[c.Size] = ccode "Chrome"
+Firefox: Const[c.Size] = ccode "Firefox"
+Edge: Const[c.Size] = ccode "Edge"
+Safari: Const[c.Size] = ccode "Safari"
+Chromium: Const[c.Size] = ccode "Chromium"
+Opera: Const[c.Size] = ccode "Opera"
+Brave: Const[c.Size] = ccode "Brave"
+Vivaldi: Const[c.Size] = ccode "Vivaldi"
+Epic: Const[c.Size] = ccode "Epic"
+Yandex: Const[c.Size] = ccode "Yandex"
+ChromiumBased: Const[c.Size] = ccode "ChromiumBased"
+
+NoRuntime: Const[c.Size] = ccode "NoRunTime"
+Deno: Const[c.Size] = ccode "Deno"
+NodeJS: Const[c.Size] = ccode "NodeJS"
+
+WEBUI_EVENT_DISCONNECTED: Const[c.Size] = ccode "WEBUI_EVENT_DISCONNECTED"
+WEBUI_EVENT_CONNECTED: Const[c.Size] = ccode "WEBUI_EVENT_CONNECTED"
+WEBUI_EVENT_MOUSE_CLICK: Const[c.Size] = ccode "WEBUI_EVENT_MOUSE_CLICK"
+WEBUI_EVENT_NAVIGATION: Const[c.Size] = ccode "WEBUI_EVENT_NAVIGATION"
+WEBUI_EVENT_CALLBACK: Const[c.Size] = ccode "WEBUI_EVENT_CALLBACK"
+
+@nativedefine("webui_event_t*")
+class Event:
+    window: c.Size
+    event_type: c.Size
+    element: c.CStr
+    event_number: c.Size
+    bind_id: c.Size
+
+# WEBUI_EXPORT size_t webui_new_window(void);
+@nativedefine("webui_new_window")
+def new_window() -> c.Size:
+    pass
+
+# WEBUI_EXPORT size_t webui_new_window_id(size_t window_number);
+@nativedefine("webui_new_window_id")
+def new_window_id(window_number: c.Size) -> c.Size:
+    pass
+
+# WEBUI_EXPORT size_t webui_get_new_window_id(void);
+@nativedefine("webui_get_new_window_id")
+def get_new_window_id() -> c.Size:
+    pass
+
+
+# WEBUI_EXPORT size_t webui_bind(size_t window, const char* element, void (*func)(webui_event_t* e));
+@nativedefine("webui_bind")
+def bind(window: c.Size, element: c.CStr, func: Function[In[Event],Out]) -> c.Size:
+    pass
+
+# WEBUI_EXPORT bool webui_show(size_t window, const char* content);
+@nativedefine("webui_show")
+def show(window: c.Size, content: c.CStr) -> bool:
+    pass
+
+# WEBUI_EXPORT bool webui_show_browser(size_t window, const char* content, size_t browser);
+@nativedefine("webui_show_browser")
+def show_browser(window: c.Size, content: c.CStr, browser: c.Size) -> bool:
+    pass
+
+# WEBUI_EXPORT void webui_set_kiosk(size_t window, bool status);
+@nativedefine("webui_set_kiosk")
+def set_kiosk(window: c.Size, status: bool) -> None:
+    pass
+
+# WEBUI_EXPORT void webui_wait(void);
+@nativedefine("webui_wait")
+def wait() -> None:
+    pass
+
+# WEBUI_EXPORT void webui_close(size_t window);
+@nativedefine("webui_close")
+def close(window: c.Size) -> None:
+    pass
+
+# WEBUI_EXPORT void webui_destroy(size_t window);
+@nativedefine("webui_destroy")
+def destroy(window: c.Size) -> None:
+    pass
+
+# WEBUI_EXPORT void webui_exit(void);
+@nativedefine("webui_exit")
+def exit() -> None:
+    pass
+
+# WEBUI_EXPORT bool webui_set_root_folder(size_t window, const char* path);
+@nativedefine("webui_set_root_folder")
+def set_root_folder(window: c.Size, path: c.CStr) -> bool:
+    pass
+
+# WEBUI_EXPORT bool webui_set_default_root_folder(const char* path);
+@nativedefine("webui_set_default_root_folder")
+def set_default_root_folder(path: c.CStr) -> bool:
+    pass
+
+# WEBUI_EXPORT void webui_set_file_handler(size_t window, const void* (*handler)(const char* filename, int* length));
+@nativedefine("webui_set_file_handler")
+def set_file_handler(window: c.Size, handler: Function[In[c.CStr,Ptr[int]],Out[AnyPtr]]) -> None:
+    pass
+
+# WEBUI_EXPORT bool webui_is_shown(size_t window);
+@nativedefine("webui_is_shown")
+def is_shown(window: c.Size) -> bool:
+    pass
+
+# WEBUI_EXPORT void webui_set_timeout(size_t second);
+@nativedefine("webui_set_timeout")
+def set_timeout(second: c.Size) -> None:
+    pass
+
+# WEBUI_EXPORT void webui_set_icon(size_t window, const char* icon, const char* icon_type);
+@nativedefine("webui_set_icon")
+def set_icon(window: c.Size, icon: c.CStr, icon_type: c.CStr) -> None:
+    pass
+
+# WEBUI_EXPORT char* webui_encode(const char* str);
+@nativedefine("webui_encode")
+def encode(str_data: c.CStr) -> str:
+    pass
+
+# WEBUI_EXPORT char* webui_decode(const char* str);
+@nativedefine("webui_decode")
+def decode(str_data: c.CStr) -> str:
+    pass
+
+# WEBUI_EXPORT void webui_free(void* ptr);
+@nativedefine("webui_free")
+def w_free(ptr: AnyPtr) -> None:
+    pass
+
+# WEBUI_EXPORT void* webui_malloc(size_t size);
+@nativedefine("webui_malloc")
+def w_malloc(size: c.Size) -> AnyPtr:
+    pass
+
+# WEBUI_EXPORT void webui_send_raw(size_t window, const char* function, const void* raw, size_t size);
+@nativedefine("webui_send_raw")
+def send_raw(window: c.Size, function: c.CStr, raw: AnyPtr, size: c.Size) -> None:
+    pass
+
+# WEBUI_EXPORT void webui_set_hide(size_t window, bool status);
+@nativedefine("webui_set_hide")
+def set_hide(window: c.Size, status: bool) -> None:
+    pass
+
+
+# WEBUI_EXPORT void webui_set_size(size_t window, unsigned int width, unsigned int height);
+@nativedefine("webui_set_size")
+def set_size(window: c.Size, width: c.UInt, height: c.UInt) -> None:
+    pass
+
+# WEBUI_EXPORT void webui_set_position(size_t window, unsigned int x, unsigned int y);
+@nativedefine("webui_set_position")
+def set_position(window: c.Size, x: c.UInt, y: c.UInt) -> None:
+    pass
+
+# WEBUI_EXPORT void webui_set_profile(size_t window, const char* name, const char* path);
+@nativedefine("webui_set_profile")
+def set_profile(window: c.Size, name: c.CStr, path: c.CStr) -> None:
+    pass
+
+# WEBUI_EXPORT void webui_set_proxy(size_t window, const char* proxy_server);
+@nativedefine("webui_set_proxy")
+def set_proxy(window: c.Size, proxy_server: c.CStr) -> None:
+    pass
+
+# WEBUI_EXPORT const char* webui_get_url(size_t window);
+@nativedefine("webui_get_url")
+def get_url(window: c.Size) -> c.CStr:
+    pass
+
+# WEBUI_EXPORT void webui_set_public(size_t window, bool status);
+@nativedefine("webui_set_public")
+def set_public(window: c.Size, status: bool) -> None:
+    pass
+
+
+# WEBUI_EXPORT void webui_navigate(size_t window, const char* url);
+@nativedefine("webui_navigate")
+def navigate(window: c.Size, url: c.CStr) -> None:
+    pass
+
+
+# WEBUI_EXPORT void webui_clean();
+@nativedefine("webui_clean")
+def clean() -> None:
+    pass
+
+# WEBUI_EXPORT void webui_delete_all_profiles();
+@nativedefine("webui_delete_all_profiles")
+def delete_all_profiles() -> None:
+    pass
+
+# WEBUI_EXPORT void webui_delete_profile(size_t window);
+@nativedefine("webui_delete_profile")
+def delete_profile(window: c.Size) -> None:
+    pass
+
+# WEBUI_EXPORT size_t webui_get_parent_process_id(size_t window);
+@nativedefine("webui_get_parent_process_id")
+def get_parent_process_id(window: c.Size) -> c.Size:
+    pass
+
+# WEBUI_EXPORT size_t webui_get_child_process_id(size_t window);
+@nativedefine("webui_get_child_process_id")
+def get_child_process_id(window: c.Size) -> c.Size:
+    pass
+
+# WEBUI_EXPORT bool webui_set_port(size_t window, size_t port);
+@nativedefine("webui_set_port")
+def set_port(window: c.Size, port: c.Size) -> bool:
+    pass
+
+# WEBUI_EXPORT bool webui_set_tls_certificate(const char* certificate_pem, const char* private_key_pem);
+@nativedefine("webui_set_tls_certificate")
+def set_tls_certificate(certificate_pem: c.CStr, private_key_pem: c.CStr) -> bool:
+    pass
+
+# WEBUI_EXPORT void webui_run(size_t window, const char* script);
+@nativedefine("webui_run")
+def run(window: c.Size, script: c.CStr) -> None:
+    pass
+
+# WEBUI_EXPORT bool webui_script(size_t window, const char* script, size_t timeout, char* buffer, size_t buffer_length);
+@nativedefine("webui_script")
+def wscript(window: c.Size, script: c.CStr, timeout: c.Size, buffer: c.CStr, buffer_length: c.Size) -> bool:
+    pass
+
+# WEBUI_EXPORT void webui_set_runtime(size_t window, size_t runtime);
+@nativedefine("webui_set_runtime")
+def set_runtime(window: c.Size, runtime: c.Size) -> None:
+    pass
+
+# WEBUI_EXPORT long long int webui_get_int_at(webui_event_t* e, size_t index);
+@nativedefine("webui_get_int_at")
+def get_int_at(e: Event, index: c.Size) -> c.CLongLong:
+    pass
+
+# WEBUI_EXPORT long long int webui_get_int(webui_event_t* e);
+@nativedefine("webui_get_int")
+def get_int(e: Event) -> c.CLongLong:
+    pass
+
+# WEBUI_EXPORT const char* webui_get_string_at(webui_event_t* e, size_t index);
+@nativedefine("webui_get_string_at")
+def get_string_at(e: Event, index: c.Size) -> c.CStr:
+    pass
+
+# WEBUI_EXPORT const char* webui_get_string(webui_event_t* e);
+@nativedefine("webui_get_string")
+def get_string(e: Event) -> c.CStr:
+    pass
+
+# WEBUI_EXPORT bool webui_get_bool_at(webui_event_t* e, size_t index);
+@nativedefine("webui_get_bool_at")
+def get_bool_at(e: Event, index: c.Size) -> bool:
+    pass
+
+# WEBUI_EXPORT bool webui_get_bool(webui_event_t* e);
+@nativedefine("webui_get_bool")
+def get_bool(e: Event) -> bool:
+    pass
+
+# WEBUI_EXPORT size_t webui_get_size_at(webui_event_t* e, size_t index);
+@nativedefine("webui_get_size_at")
+def get_size_at(e: Event, index: c.Size) -> c.Size:
+    pass
+
+# WEBUI_EXPORT size_t webui_get_size(webui_event_t* e);
+@nativedefine("webui_get_size")
+def get_size(e: Event) -> c.Size:
+    pass
+
+# WEBUI_EXPORT void webui_return_int(webui_event_t* e, long long int n);
+@nativedefine("webui_return_int")
+def return_int(e: Event, n: c.CLongLong) -> None:
+    pass
+
+# WEBUI_EXPORT void webui_return_string(webui_event_t* e, const char* s);
+@nativedefine("webui_return_string")
+def return_string(e: Event, s: c.CStr) -> None:
+    pass
+
+# WEBUI_EXPORT void webui_return_bool(webui_event_t* e, bool b);
+@nativedefine("webui_return_bool")
+def return_bool(e: Event, b: bool) -> None:
+    pass
+
+# WEBUI_EXPORT size_t webui_interface_bind(size_t window, const char* element, void (*func)(size_t, size_t, char*, size_t, size_t));
+@nativedefine("webui_interface_bind")
+def interface_bind(window: c.Size, element: c.CStr, func: Function[In[c.Size,c.Size,c.CStr,c.Size,c.Size],Out]) -> c.Size:
+    pass
+
+# WEBUI_EXPORT void webui_interface_set_response(size_t window, size_t event_number, const char* response);
+@nativedefine("webui_interface_set_response")
+def interface_set_response(window: c.Size, event_number: c.Size, response: c.CStr) -> None:
+    pass
+
+# WEBUI_EXPORT bool webui_interface_is_app_running(void);
+@nativedefine("webui_interface_is_app_running")
+def interface_is_app_running() -> bool:
+    pass
+
+# WEBUI_EXPORT size_t webui_interface_get_window_id(size_t window);
+@nativedefine("webui_interface_get_window_id")
+def interface_get_window_id(window: c.Size) -> c.Size:
+    pass
+
+# WEBUI_EXPORT const char* webui_interface_get_string_at(size_t window, size_t event_number, size_t index);
+@nativedefine("webui_interface_get_string_at")
+def interface_get_string_at(window: c.Size, event_number: c.Size, index: c.Size) -> c.CStr:
+    pass
+
+# WEBUI_EXPORT long long int webui_interface_get_int_at(size_t window, size_t event_number, size_t index);
+@nativedefine("webui_interface_get_int_at")
+def interface_get_int_at(window: c.Size, event_number: c.Size, index: c.Size) -> c.CLongLong:
+    pass
+
+# WEBUI_EXPORT bool webui_interface_get_bool_at(size_t window, size_t event_number, size_t index);
+@nativedefine("webui_interface_get_bool_at")
+def interface_get_bool_at(window: c.Size, event_number: c.Size, index: c.Size) -> bool:
+    pass
+
+# WEBUI_EXPORT size_t webui_interface_get_size_at(size_t window, size_t event_number, size_t index);
+@nativedefine("webui_interface_get_size_at")
+def interface_get_size_at(window: c.Size, event_number: c.Size, index: c.Size) -> c.Size:
+    pass

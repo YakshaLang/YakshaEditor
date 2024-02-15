@@ -1,0 +1,25 @@
+{
+  "name": "yaksha-editor-frontend",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+  },
+  "keywords": [
+
+  ],
+  "author": {
+    "name": "Bhathiya Perera",
+    "email": "JaDogg@users.noreply.github.com"
+  },
+  "license": "GPL-3.0",
+  "dependencies": {
+    "app-root-dir": "^1.0.2",
+    "axios": "^1.3.4",
+    "fs-extra": "^11.1.0"
+  },
+  "devDependencies": {
+    "grunt": "^1.6.1",
+    "grunt-contrib-cssmin": "^4.0.0",
+    "grunt-contrib-uglify": "^5.2.2"
+  }
+}

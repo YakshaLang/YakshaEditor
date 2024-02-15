@@ -1,0 +1,13 @@
+import webui as w
+import libs.c
+import libs.strings.refs as r
+
+def main() -> int:
+    mw = w.new_window()
+    w.set_root_folder(mw, r.unwrap("frontend"))
+    # w.bind(mw, "__close-btn", on_close)
+    #if not w.show_browser(mw, r.unwrap("index.html"), cast("c.Size", w.ChromiumBased)):
+    w.show(mw, r.unwrap("index.html"))
+    w.wait()
+    w.clean()
+    return 0
