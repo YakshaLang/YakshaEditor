@@ -1,6 +1,13 @@
 // Load layout engine
 $(document).ready(function () {
     $('#container').layout();
+    $(document).bind('keydown', function(e) {
+        if(e.ctrlKey && (e.which === 83)) {
+            e.preventDefault();
+            console.log("Ctrl + S pressed!");
+            return false;
+        }
+    });
     // Set up the editor
     require(['vs/editor/editor.main'], function () {
         monaco.languages.register({
