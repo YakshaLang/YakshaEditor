@@ -3,7 +3,10 @@ import libs.c
 import libs.strings.refs as r
 import libs.console
 
+import dtraverse as dt
+
 def main() -> int:
+    f = dt.listdir(".")
     mw = w.new_window()
     println("created window")
     w.set_root_folder(mw, c.cstr!{"frontend"})

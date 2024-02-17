@@ -5,7 +5,7 @@ function yaksha_mo() {
 
         keywords: ["as", "break", "class", "struct", "ccode", "continue", "def",
             "del", "defer", "else", "if", "elif", "import", "pass", "return",
-            "while", "True", "False", "None", "runtimefeature", "for", "in", // "macros",
+            "while", "True", "False", "None", "runtimefeature", "for", "in",
         ],
 
         typeKeywords: ["int", "i8", "i16", "i32", "i64", "u8", "u16", "u32",
@@ -14,8 +14,8 @@ function yaksha_mo() {
             "Const"
         ],
 
-        // TODO add the import ref special builtin
         lispBuiltins: [
+            "yk_import_ref",
             "ykt_xor_eq", "ykt_xor", "ykt_tilde", "ykt_sub_eq",
             "ykt_sub", "ykt_string", "ykt_square_bracket_open",
             "ykt_square_bracket_close", "ykt_shr_eq", "ykt_shr",
@@ -128,14 +128,45 @@ function yaksha_mo() {
 
         // TODO add all the builtins here
         builtins: [
-            "print", "println", "len",
+            "print",
+            "println",
+            "len",
+            "arrput",
+            "arrpop",
+            "arrnew",
+            "arrsetcap",
+            "arrsetlen",
+            "array",
+            "getref",
+            "unref",
+            "charat",
+            "shnew",
+            "shput",
+            "shget",
+            "shgeti",
+            "hmnew",
+            "hmput",
+            "hmget",
+            "hmgeti",
+            "cast",
+            "qsort",
+            "iif",
+            "foreach",
+            "countif",
+            "filter",
+            "map",
+            "binarydata",
+            "inlinec",
+            "make",
+            "fixedarr",
         ],
 
-        // "(", ")", "[", "]", "{", "}",
         operators: ["->", "+", "-", "*", "/", "%",
             "<<", ">>", "&", "|", "^", "<", ">", "<=", ">=", "==", "!=", "@",
             ":", ".", ",", "=", "+=", "-=", "*=", "/=", "%=", "<<=", ">>=",
-            "&=", "|=", "^=", "not", "!", ";", "~", "or", "and",],
+            "&=", "|=", "^=", "!", ";", "~"],
+
+        operatorWords: ["and", "or", "not"],
 
         symbols: /[=><!~?:&|+\-*\/\^%a-z]+/,
 
@@ -143,7 +174,11 @@ function yaksha_mo() {
 
         tokenizer: {
             root: [
-                [/macros\s*!\s*[{]/, {token: 'macros-block.start', bracket: '@open', next: '@mb'}],
+                [/macros\s*!\s*[{]/, {
+                    token: 'macros-block.start',
+                    bracket: '@open',
+                    next: '@mb'
+                }],
                 [/([a-zA-Z_][a-zA-Z0-9_]*[.])?[a-zA-Z_][a-zA-Z0-9_]*\s*!/,
                     'macros-invoke'],
                 // matches things like -- Node, c.CStr
@@ -154,6 +189,7 @@ function yaksha_mo() {
                         '@typeKeywords': 'type.identifier',
                         '@keywords': 'keyword',
                         '@builtins': 'builtins',
+                        '@operatorWords': 'operator',
                         '@default': 'identifier'
                     }
                 }],
@@ -218,7 +254,11 @@ function yaksha_mo() {
                 [/0[xX][0-9a-fA-F]+/, 'number.hex'],
                 [/\d+/, 'number'],
                 [/#.*$/, 'comment'],
-                [/[}]/, {token: 'macros-block.end', bracket: '@close', next: '@pop'}],
+                [/[}]/, {
+                    token: 'macros-block.end',
+                    bracket: '@close',
+                    next: '@pop'
+                }],
             ],
 
             whitespace: [

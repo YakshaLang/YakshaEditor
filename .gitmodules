@@ -1,3 +1,6 @@
 [submodule "webui"]
-	path = webui
+	path = 3rd/webui
 	url = https://github.com/webui-dev/webui.git
+[submodule "3rd/dirent"]
+	path = 3rd/dirent
+	url = https://github.com/tronkko/dirent.git

@@ -2,9 +2,19 @@
 $(document).ready(function () {
     $('#container').layout();
     $(document).bind('keydown', function (e) {
-        if (e.ctrlKey && (e.which === 83)) {
+        if ((e.ctrlKey || e.metaKey) && (e.code === e.KeyS)) {
             e.preventDefault();
             console.log("Ctrl + S pressed!");
+            return false;
+        }
+        if ((e.ctrlKey || e.metaKey) && (e.code === e.KeyO)) {
+            e.preventDefault();
+            console.log("Ctrl + Z pressed!");
+            return false;
+        }
+        if ((e.ctrlKey || e.metaKey) && (e.code === e.KeyN)) {
+            e.preventDefault();
+            console.log("Ctrl + N pressed!");
             return false;
         }
     });

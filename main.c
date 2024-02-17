@@ -1,4 +1,5 @@
 #include "webui.h"
+#include "dirent.h"
 #include "yk__system.h"
 #include "whereami.h"
 #include "toml.h"

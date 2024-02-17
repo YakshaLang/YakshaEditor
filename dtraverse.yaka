@@ -1,0 +1,66 @@
+import libs.c
+import libs.strings.refs as r
+
+# ------------- Low level API -------------
+
+DT_UNKNOWN: Const[c.CInt] = ccode "DT_UNKNOWN"
+DT_REG: Const[c.CInt] = ccode "DT_REG"
+DT_DIR: Const[c.CInt] = ccode "DT_DIR"
+DT_FIFO: Const[c.CInt] = ccode "DT_FIFO"
+DT_SOCK: Const[c.CInt] = ccode "DT_SOCK"
+DT_CHR: Const[c.CInt] = ccode "DT_CHR"
+DT_BLK: Const[c.CInt] = ccode "DT_BLK"
+DT_LNK: Const[c.CInt] = ccode "DT_LNK"
+
+@nativedefine("struct dirent *")
+class DirEntryObject:
+    d_namlen: c.Size
+    d_type: c.CInt
+    d_name: c.CStr
+
+@nativedefine("DIR *")
+class DirObject:
+    pass
+
+@nativedefine("opendir")
+def opendir(directory: c.CStr) -> DirObject:
+    pass
+
+@nativedefine("readdir")
+def readdir(dirp: DirObject) -> DirEntryObject:
+    pass
+
+@nativedefine("closedir")
+def closedir(dirp: DirObject) -> None:
+    pass
+
+# ------------- High level API -------------
+class Entry:
+    name: str
+    is_dir: bool
+
+def listdir(directory: sr) -> Array[Entry]:
+    entries: Array[Entry]
+    p = opendir(r.unwrap(directory))
+    if p == None:
+        return entries
+    defer closedir(p)
+    while True:
+        de = readdir(p)
+        if de == None:
+            break
+        if de.d_type != DT_DIR and de.d_type != DT_REG:
+            continue
+        name = r.wrap_cstr(de.d_name, cast("int", de.d_namlen))
+        item = Entry()
+        item.name = name
+        item.is_dir = de.d_type == DT_DIR
+        arrput(entries, item)
+    return entries
+
+def del_entry_arr(entries: Array[Entry]) -> None:
+    # Deallocate an Array of Entry objects
+    for entry in entries:
+        del entry.name
+        del entry
+    del entries
