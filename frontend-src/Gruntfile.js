@@ -13,6 +13,7 @@ module.exports = function (grunt) {
                         '3rdparty/jquery/jquery.layout.js',
                         /* my sources */
                         'js/utils.js',
+                        'js/yaksha_mo.js',
                         'js/main.js',
                         /** ============ jquery fix ============ */
                         'js/after-scripts.js',

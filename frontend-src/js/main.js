@@ -1,8 +1,8 @@
 // Load layout engine
 $(document).ready(function () {
     $('#container').layout();
-    $(document).bind('keydown', function(e) {
-        if(e.ctrlKey && (e.which === 83)) {
+    $(document).bind('keydown', function (e) {
+        if (e.ctrlKey && (e.which === 83)) {
             e.preventDefault();
             console.log("Ctrl + S pressed!");
             return false;
@@ -13,36 +13,66 @@ $(document).ready(function () {
         monaco.languages.register({
             id: 'yaksha'
         });
-        monaco.languages.setMonarchTokensProvider('yaksha', {
-            tokenizer: {
-                root: [
-                    [/\[error.*/, 'custom-error'],
-                    [/\[notice.*/, 'custom-notice'],
-                    [/\[info.*/, 'custom-info'],
-                    [/\[[a-zA-Z 0-9:]+\]/, 'custom-date']
-                ]
-            }
-        });
+        monaco.languages.setMonarchTokensProvider('yaksha', yaksha_mo());
+        monaco.languages.setLanguageConfiguration('yaksha', yaksha_co());
 
-        // Define a new theme that constains only rules that match this language
+        // Define a new theme that contains only rules that match this language
         monaco.editor.defineTheme('yaksha-theme', {
             colors: {},
             base: 'vs',
-            inherit: false,
+            inherit: true,
             rules: [
-                {token: 'custom-info', foreground: '808080'},
-                {token: 'custom-error', foreground: 'ff0000', fontStyle: 'bold'},
-                {token: 'custom-notice', foreground: 'FFA500'},
-                {token: 'custom-date', foreground: '008800'}
+                {
+                    token: 'macros-block',
+                    foreground: '987303',
+                    fontStyle: 'bold underline'
+                },
+                {
+                    token: 'lisp-builtins',
+                    foreground: 'e83cac',
+                    fontStyle: 'bold'
+                },
+                {
+                    token: 'builtins',
+                    foreground: 'e83cac',
+                    fontStyle: 'bold'
+                },
+                {
+                    token: 'macros-invoke',
+                    foreground: 'c39400',
+                    fontStyle: 'underline'
+                },
+                {
+                    token: 'operator',
+                    foreground: 'ff6600',
+                    fontStyle: 'bold'
+                },
+                {
+                    token: 'brackets',
+                    foreground: '0058db',
+                    fontStyle: 'bold'
+                },
+                {
+                    token: 'string.escape',
+                    foreground: '008591',
+                },
+                {
+                    token: 'string.invalid',
+                    foreground: 'ff0000',
+                    fontStyle: 'bold'
+                }
             ]
         });
 
-        window.editor = monaco.editor.create(document.getElementById('editor'), {
-            theme: 'yaksha-theme',
-            value: "getCode()",
-            language: 'yaksha',
-            automaticLayout: true,
-        });
+        window.editor =
+            monaco.editor.create(document.getElementById('editor'), {
+                theme: 'yaksha-theme',
+                value: yaksha_init_code(),
+                language: 'yaksha',
+                automaticLayout: true,
+                bracketPairColorization: {enabled: true},
+
+            });
         $('#loading-animation').remove();
     });
 });

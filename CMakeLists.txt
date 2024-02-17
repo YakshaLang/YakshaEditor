@@ -11,11 +11,6 @@ set(yaksha_main "${CODE_PATH}/main.yaka")
 set(yaksha_webui "${CODE_PATH}/webui.yaka")
 set(yaksha_editor "${CODE_PATH}/yaksha_editor.c")
 
-
-#DEFAULT_c_code = ["whereami.c", "yk__system.c", "utf8proc.c", "toml.c",
-#"yk__console.c", "yk__arrayutils.c", "yk__process.c",
-#"yk__graphic_utils.c", "argparse.c", "yk__argparse.c", "tinycthread.c", "yk__cpu.c"]
-
 set(YAKSHA_RUNTIME_FILES
         ${YK_RT_PATH}/_include_bstr.h ${YK_RT_PATH}/_include_io.h ${YK_RT_PATH}/_include_mman_win.h ${YK_RT_PATH}/argparse.h ${YK_RT_PATH}/cr.h ${YK_RT_PATH}/cr_userdata.h ${YK_RT_PATH}/endianness.h ${YK_RT_PATH}/ini.h ${YK_RT_PATH}/stmmr.h ${YK_RT_PATH}/subprocess.h ${YK_RT_PATH}/tinycthread.h ${YK_RT_PATH}/toml.h ${YK_RT_PATH}/utf8proc.h ${YK_RT_PATH}/wasm4.h ${YK_RT_PATH}/whereami.h ${YK_RT_PATH}/yk__argparse.h ${YK_RT_PATH}/yk__arrayutils.h ${YK_RT_PATH}/yk__console.h ${YK_RT_PATH}/yk__cpu.h ${YK_RT_PATH}/yk__graphic_utils.h ${YK_RT_PATH}/yk__lib.h ${YK_RT_PATH}/yk__process.h ${YK_RT_PATH}/yk__system.h ${YK_RT_PATH}/yk__utf8iter.h ${YK_RT_PATH}/yk__wasm4_libc.h ${YK_RT_PATH}/argparse.c ${YK_RT_PATH}/tinycthread.c ${YK_RT_PATH}/toml.c ${YK_RT_PATH}/utf8proc.c ${YK_RT_PATH}/whereami.c ${YK_RT_PATH}/yk__argparse.c ${YK_RT_PATH}/yk__arrayutils.c ${YK_RT_PATH}/yk__console.c ${YK_RT_PATH}/yk__cpu.c ${YK_RT_PATH}/yk__graphic_utils.c ${YK_RT_PATH}/yk__main.c ${YK_RT_PATH}/yk__process.c ${YK_RT_PATH}/yk__system.c)
 add_custom_command(OUTPUT ${yaksha_editor}
