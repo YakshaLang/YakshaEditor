@@ -21,7 +21,6 @@ function listfiles() {
                 // + (f.path === path ? " current-file" : "")
                 + (f.name === ".." ? " red-folder" : "");
             const icon = fType === "folder" ? FOLDER : FILE;
-            console.log([f, fType, htmlClass]);
             html += "<div onclick='clickFile(" + quoteJsThenEscapeHtml(f.name)
                 + "," + quoteJsThenEscapeHtml(fType) + ")' class='" +
                 htmlClass + "'>"
@@ -51,7 +50,6 @@ $(document).ready(function () {
         }
     });
     // Set up the editor
-    require(['vs/editor/editor.main'], function () {
         monaco.languages.register({
             id: 'yaksha'
         });
@@ -76,8 +74,5 @@ $(document).ready(function () {
             });
 
         $('#loading-animation').remove();
-        listfiles();
-    });
-
-
+        setTimeout(listfiles, 300);
 });

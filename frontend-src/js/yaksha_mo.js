@@ -126,7 +126,6 @@ function yaksha_tokenizer_rules() {
             "==", "=", "<=", "<", "/", "-", "+", "*", "!="
         ],
 
-        // TODO add all the builtins here
         builtins: [
             "print",
             "println",
@@ -210,7 +209,7 @@ function yaksha_tokenizer_rules() {
                 // tokens. Note: message are suppressed during the first load --
                 // change some lines to see them.
                 [/@\s*[a-zA-Z_]\w*/,
-                    {token: 'annotation', log: 'annotation token: $0'}],
+                    {token: 'annotation'}],
 
                 // numbers
                 [/\d*\.\d+([eE][\-+]?\d+)?/, 'number.float'],

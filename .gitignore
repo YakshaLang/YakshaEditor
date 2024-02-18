@@ -286,3 +286,10 @@ cython_debug/
 **/node_modules/
 /cmake-build-debug/
 /cmake-build-release/
+
+*.LICENSE.txt
+frontend/js/monaco/*.js
+frontend/js/monaco/*.ttf
+frontend/js/monaco/*.txt
+frontend/js/monaco/*.css
+!frontend/js/monaco/31d6cfe0d16ae931b73c.ttf
