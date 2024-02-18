@@ -1,4 +1,36 @@
-// Load layout engine
+function listfiles() {
+    webui.call('listfiles').then(function (data) {
+        let html = "";
+        const files = JSON.parse(data).sort((a, b) => {
+            if (a.type === "d" && b.type === "f") {
+                return -1;
+            }
+            if (a.type === "f" && b.type === "d") {
+                return 1;
+            }
+            return a.name.localeCompare(b.name);
+
+        });
+
+        for (let f of files) {
+            if (f.name === ".") {
+                continue;
+            }
+            const fType = (f.type === "d" ? "folder" : "file");
+            const htmlClass = fType
+                // + (f.path === path ? " current-file" : "")
+                + (f.name === ".." ? " red-folder" : "");
+            const icon = fType === "folder" ? FOLDER : FILE;
+            console.log([f, fType, htmlClass]);
+            html += "<div onclick='clickFile(" + quoteJsThenEscapeHtml(f.name)
+                + "," + quoteJsThenEscapeHtml(fType) + ")' class='" +
+                htmlClass + "'>"
+                + icon + " <span>" + escapeHtml(f.name) + "</span></div>"
+        }
+        $("#filebrowser").html(html);
+    });
+}
+
 $(document).ready(function () {
     $('#container').layout();
     $(document).bind('keydown', function (e) {
@@ -23,66 +55,29 @@ $(document).ready(function () {
         monaco.languages.register({
             id: 'yaksha'
         });
-        monaco.languages.setMonarchTokensProvider('yaksha', yaksha_mo());
-        monaco.languages.setLanguageConfiguration('yaksha', yaksha_co());
-
-        // Define a new theme that contains only rules that match this language
-        monaco.editor.defineTheme('yaksha-theme', {
+        monaco.languages.setMonarchTokensProvider('yaksha',
+            yaksha_tokenizer_rules());
+        monaco.languages.setLanguageConfiguration('yaksha',
+            yaksha_configuration());
+        monaco.editor.defineTheme('vs-yaksha-theme', {
             colors: {},
             base: 'vs',
             inherit: true,
-            rules: [
-                {
-                    token: 'macros-block',
-                    foreground: '987303',
-                    fontStyle: 'bold underline'
-                },
-                {
-                    token: 'lisp-builtins',
-                    foreground: 'e83cac',
-                    fontStyle: 'bold'
-                },
-                {
-                    token: 'builtins',
-                    foreground: 'e83cac',
-                    fontStyle: 'bold'
-                },
-                {
-                    token: 'macros-invoke',
-                    foreground: 'c39400',
-                    fontStyle: 'underline'
-                },
-                {
-                    token: 'operator',
-                    foreground: 'ff6600',
-                    fontStyle: 'bold'
-                },
-                {
-                    token: 'brackets',
-                    foreground: '0058db',
-                    fontStyle: 'bold'
-                },
-                {
-                    token: 'string.escape',
-                    foreground: '008591',
-                },
-                {
-                    token: 'string.invalid',
-                    foreground: 'ff0000',
-                    fontStyle: 'bold'
-                }
-            ]
+            rules: yaksha_vs_extend_colors()
         });
 
         window.editor =
             monaco.editor.create(document.getElementById('editor'), {
-                theme: 'yaksha-theme',
-                value: yaksha_init_code(),
+                theme: 'vs-yaksha-theme',
+                value: yaksha_init_code() + "\n",
                 language: 'yaksha',
                 automaticLayout: true,
                 bracketPairColorization: {enabled: true},
-
             });
+
         $('#loading-animation').remove();
+        listfiles();
     });
+
+
 });

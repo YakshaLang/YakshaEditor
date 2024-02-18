@@ -1,7 +1,14 @@
 .main-editor {
-    height: calc(100% - 40px) !important;
-    width: calc(100% - 40px) !important;
-    padding: 20px;
+    height: calc(100% - 10px) !important;
+    width: calc(100% - 10px) !important;
+    padding: 5px;
+}
+
+#filebrowser {
+    font-size: 0.6em;
+    height: calc(100% - 80px);
+    width: calc(100% - 4px);
+    overflow-y: scroll;
 }
 
 .suggestions {

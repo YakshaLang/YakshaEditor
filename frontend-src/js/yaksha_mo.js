@@ -1,4 +1,4 @@
-function yaksha_mo() {
+function yaksha_tokenizer_rules() {
     return {
         // Set defaultToken to invalid to see what you do not tokenize yet
         defaultToken: 'invalid',
@@ -269,7 +269,7 @@ function yaksha_mo() {
     };
 }
 
-function yaksha_co() {
+function yaksha_configuration() {
     return {
         comments: {
             lineComment: "#",
@@ -306,4 +306,48 @@ function yaksha_co() {
 
 function yaksha_init_code() {
     return "import libs.c\r\n\r\nmacros! {\r\n    (defun const_str (elem)\r\n        (list (yk_create_token YK_TOKEN_NAME \"inlinec\")\r\n            (ykt_paren_open)\r\n            (ykt_string (+ \"Const[Ptr[Const[\" yk_import_ref \".Char]]]\")) (ykt_comma)\r\n            (ykt_string (repr elem::value)) (ykt_paren_close)))\r\n    (defun cstr (elem)\r\n        (list (yk_create_token YK_TOKEN_NAME \"inlinec\")\r\n            (ykt_paren_open)\r\n            (ykt_string (+ yk_import_ref \".CStr\")) (ykt_comma)\r\n            (ykt_string (repr elem::value)) (ykt_paren_close)))\r\n    (defun character (elem)\r\n        (list (yk_create_token YK_TOKEN_NAME \"inlinec\")\r\n            (ykt_paren_open)\r\n            (ykt_string (+ \"Const[\" yk_import_ref \".Char]\")) (ykt_comma)\r\n            (ykt_string (+ \"'\" elem::value \"'\") (ykt_paren_close))))\r\n    (yk_register {dsl const_str const_str})\r\n    (yk_register {dsl cstr cstr})\r\n    # c.const_str!{\"Hi\"} --> create a const char * const --> inlinec(\"Const[Ptr[Const[Char]]]\", \"\\\"Hi\\\"\")\r\n    # c.cstr!{\"Hi\"} --> create a c.CStr\r\n    (yk_register {dsl char character})\r\n    # c.char!{\"a\"} --> create a char --> inlinec(\"Const[Char]\", \"'a'\")\r\n}\r\n\r\n\r\nNoBrowser: Const[c.Size] = ccode \"NoBrowser\"\r\nAnyBrowser: Const[c.Size] = ccode \"AnyBrowser\"\r\nChrome: Const[c.Size] = ccode \"Chrome\"\r\nFirefox: Const[c.Size] = ccode \"Firefox\"\r\nEdge: Const[c.Size] = ccode \"Edge\"\r\nSafari: Const[c.Size] = ccode \"Safari\"\r\nChromium: Const[c.Size] = ccode \"Chromium\"\r\nOpera: Const[c.Size] = ccode \"Opera\"\r\nBrave: Const[c.Size] = ccode \"Brave\"\r\nVivaldi: Const[c.Size] = ccode \"Vivaldi\"\r\nEpic: Const[c.Size] = ccode \"Epic\"\r\nYandex: Const[c.Size] = ccode \"Yandex\"\r\nChromiumBased: Const[c.Size] = ccode \"ChromiumBased\"\r\n\r\nNoRuntime: Const[c.Size] = ccode \"NoRunTime\"\r\nDeno: Const[c.Size] = ccode \"Deno\"\r\nNodeJS: Const[c.Size] = ccode \"NodeJS\"\r\n\r\nWEBUI_EVENT_DISCONNECTED: Const[c.Size] = ccode \"WEBUI_EVENT_DISCONNECTED\"\r\nWEBUI_EVENT_CONNECTED: Const[c.Size] = ccode \"WEBUI_EVENT_CONNECTED\"\r\nWEBUI_EVENT_MOUSE_CLICK: Const[c.Size] = ccode \"WEBUI_EVENT_MOUSE_CLICK\"\r\nWEBUI_EVENT_NAVIGATION: Const[c.Size] = ccode \"WEBUI_EVENT_NAVIGATION\"\r\nWEBUI_EVENT_CALLBACK: Const[c.Size] = ccode \"WEBUI_EVENT_CALLBACK\"\r\n\r\n@nativedefine(\"webui_event_t*\")\r\nclass Event:\r\n    window: c.Size\r\n    event_type: c.Size\r\n    element: c.CStr\r\n    event_number: c.Size\r\n    bind_id: c.Size\r\n\r\n# WEBUI_EXPORT size_t webui_new_window(void);\r\n@nativedefine(\"webui_new_window\")\r\ndef new_window() -> c.Size:\r\n    pass\r\n\r\n# WEBUI_EXPORT size_t webui_new_window_id(size_t window_number);\r\n@nativedefine(\"webui_new_window_id\")\r\ndef new_window_id(window_number: c.Size) -> c.Size:\r\n    pass\r\n\r\n# WEBUI_EXPORT size_t webui_get_new_window_id(void);\r\n@nativedefine(\"webui_get_new_window_id\")\r\ndef get_new_window_id() -> c.Size:\r\n    pass\r\n\r\n\r\nclass BObject:\r\n    args: Array[str]\r\n    c_file: str\r\n    object_file_path: str\r\n    always_build: bool\r\n    print_info: bool\r\n    # For this object we only keep a reference to str array, everything else can be deleted (except bool)\r\n\r\ndef prepare_code(c: carp.Config, code: str) -> str:\r\n    # Prepare code for compilation based on configuration\r\n    # Injects includes, defines, etc\r\n    # Then return final code\r\n    buf: sbuf.StringBuffer = sbuf.new()\r\n    defer sbuf.del_buf(buf)\r\n    # --\r\n    length: int = 0\r\n    x: int = 0\r\n    # write #runtime_defines\r\n    length = len(c.c_code.runtime_feature_defines)\r\n    x = 0\r\n    while x < length:\r\n        sbuf.append(buf, \"#define \" + c.c_code.runtime_feature_defines[x] + \"\\n\")\r\n        x = x + 1\r\n    # write #defines\r\n    length = len(c.c_code.defines)\r\n    x = 0\r\n    while x < length:\r\n        sbuf.append(buf, \"#define \" + c.c_code.defines[x] + \"\\n\")\r\n        x = x + 1\r\n    # write #include <>\r\n    length = len(c.c_code.system_includes)\r\n    x = 0\r\n    while x < length:\r\n        sbuf.append(buf, \"#include <\" + c.c_code.system_includes[x] + \">\\n\")\r\n        x = x + 1\r\n    # Add raylib.h & friends\r\n    if c.compilation.raylib:\r\n        sbuf.append(buf, \"#include \\\"raylib.h\\\"\\n\")\r\n        sbuf.append(buf, \"#include \\\"raygui.h\\\"\\n\")\r\n        sbuf.append(buf, \"#include \\\"raymath.h\\\"\\n\")\r\n        sbuf.append(buf, \"#include \\\"rlgl.h\\\"\\n\")\r\n        sbuf.append(buf, \"#include \\\"rayextras.h\\\"\\n\")\r\n    # write runtime feature #include \"\"\r\n    length = len(c.c_code.runtime_feature_includes)\r\n    x = 0\r\n    while x < length:\r\n        sbuf.append(buf, \"#include \\\"\" + c.c_code.runtime_feature_includes[x] + \"\\\"\\n\")\r\n        x = x + 1\r\n    # write #include \"\"\r\n    length = len(c.c_code.includes)\r\n    x = 0\r\n    while x < length:\r\n        sbuf.append(buf, \"#include \\\"\" + c.c_code.includes[x] + \"\\\"\\n\")\r\n        x = x + 1\r\n    # code itself\r\n    sbuf.append(buf, code)\r\n    sbuf.append(buf, \"\\n\")\r\n    # to string\r\n    result: str = sbuf.to_str(buf)\r\n    return result\r\n\r\ndef is_target_macos(target_to_check: str) -> bool:\r\n    # Check if given target is macos, if target == native, check if we are running macos\r\n    native: bool = len(target_to_check) == 0\r\n    if native:\r\n        return os.is_macos()\r\n    return strings.contains(target_to_check, \"macos\")\r\n\r\ndef is_target_windows(target_to_check: str) -> bool:\r\n    # Check if given target is windows, if target == native, check if we are running windows\r\n    native: bool = len(target_to_check) == 0\r\n    if native:\r\n        return os.is_windows()\r\n    return strings.contains(target_to_check, \"windows\")\r\n\r\ndef produce_obj_function(arg: AnyPtr) -> None:\r\n    # Produce a single object from given build_object\r\n    data: BObject = cast(\"BObject\", arg)\r\n    my_args: Array[str] = sarr.dup(data.args)\r\n    # Copy the arguments so we can add -c and -o of our own\r\n    defer sarr.del_str_array(my_args)\r\n\r\n    object_file: str = path.remove_extension(path.basename(data.c_file))\r\n\r\n    if data.print_info:\r\n        console.cyan(\"runtime::\")\r\n        console.yellow(object_file)\r\n        console.cyan(\" := \")\r\n\r\n    if not data.always_build and path.readable(data.object_file_path):\r\n        if data.print_info:\r\n            console.green(\"ok.\\n\")\r\n        return\r\n\r\n    arrput(my_args, \"-c\")\r\n    arrput(my_args, data.c_file)\r\n    arrput(my_args, \"-o\")\r\n    arrput(my_args, data.object_file_path)\r\n\r\n    pr: os.ProcessResult = os.run(my_args)\r\n\r\n    if data.print_info:\r\n        if pr.ok:\r\n            console.green(\"ok.\\n\")\r\n        else:\r\n            console.red(\"failed.\\n\")\r\n            console.cyan(\"--c compiler output---\\n\")\r\n            console.red(\"command := \")\r\n            console.cyan(sarr.join(my_args, \" \") + \"\\n\")\r\n            console.red(pr.output)\r\n            console.cyan(\"--end c compiler output---\\n\")\r\n\r\n    os.del_process_result(pr)\r\n";
+}
+
+function yaksha_vs_extend_colors() {
+    return [
+        {
+            token: 'macros-block',
+            foreground: '987303',
+            fontStyle: 'bold underline'
+        },
+        {
+            token: 'lisp-builtins',
+            foreground: 'e83cac',
+            fontStyle: 'bold'
+        },
+        {
+            token: 'builtins',
+            foreground: 'e83cac',
+            fontStyle: 'bold'
+        },
+        {
+            token: 'macros-invoke',
+            foreground: 'c39400',
+            fontStyle: 'underline'
+        },
+        {
+            token: 'operator',
+            foreground: 'ff6600',
+            fontStyle: 'bold'
+        },
+        {
+            token: 'brackets',
+            foreground: '0058db',
+            fontStyle: 'bold'
+        },
+        {
+            token: 'string.escape',
+            foreground: '008591',
+        },
+        {
+            token: 'string.invalid',
+            foreground: 'ff0000',
+            fontStyle: 'bold'
+        }
+    ]
 }

@@ -5,13 +5,83 @@ import libs.console
 
 import dtraverse as dt
 
-def main() -> int:
+macros! {
+    (defun remove_first_last (s)
+        (= x (explode_string s))
+        (= x (tail x))
+        (pop x)
+        (= res (reduce + x))
+        res)
+    (defun char (elem)
+        (list (yk_create_token YK_TOKEN_NAME "inlinec")
+            (ykt_paren_open)
+            (ykt_string "int") (ykt_comma)
+            (ykt_string (+ "'" (remove_first_last (repr elem::value)) "'")) (ykt_paren_close)))
+    (yk_register {dsl char char})
+    # char!{"a"} --> inlinec("int", "'a'")
+}
+
+@native
+def append_char(s: sr, character: int) -> str:
+    ccode """size_t length = yk__bstr_len(nn__s);
+    size_t new_length = length + 1;
+    yk__sds result = yk__sdsnewlen(yk__bstr_get_reference(nn__s), length);
+    result = yk__sdsgrowzero(result, new_length);
+    result[length] = nn__character;
+    return result"""
+
+def escape_js_string(s: sr) -> str:
+    length = len(s)
+    result: str = ""
+    cur: int = 0
+    for (i = 0; i < length; i += 1):
+        cur = charat(s, i)
+        if cur == char!{"\""}:
+            result += "\\\""
+        elif cur == char!{"\\"}:
+            result += "\\\\"
+        elif cur == char!{"\b"}:
+            result += "\\b"
+        elif cur == char!{"\f"}:
+            result += "\\f"
+        elif cur == char!{"\n"}:
+            result += "\\n"
+        elif cur == char!{"\r"}:
+            result += "\\r"
+        elif cur == char!{"\t"}:
+            result += "\\t"
+        else:
+            result = append_char(result, cur)
+    return result
+
+
+def file_entries_to_json(entries: Array[dt.Entry]) -> str:
+    json: str = "["
+    counter = 0
+    for i in entries:
+        json += "{"
+        json += "\"name\": \"" + escape_js_string(i.name) + "\","
+        json += "\"type\": \"" + iif(i.is_dir, "d", "f") + "\""
+        json += "}"
+        if counter < len(entries) - 1:
+            json += ","
+        counter += 1
+    json += "]"
+    return json
+
+def list_files(event: w.Event) -> None:
     f = dt.listdir(".")
+    json: str = file_entries_to_json(f)
+    w.return_string(event, cast("c.CStr", json))
+
+def main() -> int:
     mw = w.new_window()
     println("created window")
     w.set_root_folder(mw, c.cstr!{"frontend"})
     # w.bind(mw, "__close-btn", on_close)
     w.show(mw, c.cstr!{"index.html"})
+
+    w.bind(mw, c.cstr!{"listfiles"}, list_files)
     println("waiting ... ")
     w.wait()
     println("done")

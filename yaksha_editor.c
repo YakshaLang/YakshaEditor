@@ -12,15 +12,22 @@ struct yy__dtraverse_Entry;
 #define yy__c_Size size_t
 #define yy__c_CStr char*
 #define yy__c_CInt int
+#define yy__webui_Event webui_event_t*
 #define yy__webui_new_window webui_new_window
+#define yy__webui_bind webui_bind
 #define yy__webui_show webui_show
 #define yy__webui_wait webui_wait
 #define yy__webui_set_root_folder webui_set_root_folder
 #define yy__webui_clean webui_clean
+#define yy__webui_return_string webui_return_string
 struct yy__dtraverse_Entry** yy__dtraverse_listdir(struct yk__bstr);
 int32_t yy__console_getch();
 yy__c_CStr const  yy__refs_unwrap(struct yk__bstr);
 struct yk__bstr yy__refs_wrap_cstr(yy__c_CStr, int32_t);
+yk__sds yy__append_char(struct yk__bstr, int32_t);
+yk__sds yy__escape_js_string(struct yk__bstr);
+yk__sds yy__file_entries_to_json(struct yy__dtraverse_Entry**);
+void yy__list_files(yy__webui_Event);
 int32_t yy__main();
 // --structs-- 
 struct yy__dtraverse_Entry {
@@ -64,13 +71,135 @@ int32_t yy__console_getch()
 }
 yy__c_CStr const  yy__refs_unwrap(struct yk__bstr nn__a) { return yk__bstr_get_reference(nn__a); }
 struct yk__bstr yy__refs_wrap_cstr(yy__c_CStr nn__s, int32_t nn__length) { return yk__bstr_c(nn__s, nn__length); }
-int32_t yy__main() 
+yk__sds yy__append_char(struct yk__bstr nn__s, int32_t nn__character) 
+{
+    size_t length = yk__bstr_len(nn__s);
+    size_t new_length = length + 1;
+    yk__sds result = yk__sdsnewlen(yk__bstr_get_reference(nn__s), length);
+    result = yk__sdsgrowzero(result, new_length);
+    result[length] = nn__character;
+    return result;
+}
+yk__sds yy__escape_js_string(struct yk__bstr yy__s) 
+{
+    int32_t yy__length = yk__bstr_len(yy__s);
+    yk__sds yy__result = yk__sdsnewlen("" , 0);
+    int32_t yy__cur = INT32_C(0);
+    for (int32_t yy__i = INT32_C(0);(yy__i < yy__length);yy__i += INT32_C(1))
+    {
+        yy__cur = (yk__bstr_get_reference(yy__s)[yy__i]);
+        if (yy__cur == '\"')
+        {
+            yy__result = yk__append_sds_lit(yy__result, "\\\"" , 2);
+        }
+        else
+        {
+            if (yy__cur == '\\')
+            {
+                yy__result = yk__append_sds_lit(yy__result, "\\\\" , 2);
+            }
+            else
+            {
+                if (yy__cur == '\b')
+                {
+                    yy__result = yk__append_sds_lit(yy__result, "\\b" , 2);
+                }
+                else
+                {
+                    if (yy__cur == '\f')
+                    {
+                        yy__result = yk__append_sds_lit(yy__result, "\\f" , 2);
+                    }
+                    else
+                    {
+                        if (yy__cur == '\n')
+                        {
+                            yy__result = yk__append_sds_lit(yy__result, "\\n" , 2);
+                        }
+                        else
+                        {
+                            if (yy__cur == '\r')
+                            {
+                                yy__result = yk__append_sds_lit(yy__result, "\\r" , 2);
+                            }
+                            else
+                            {
+                                if (yy__cur == '\t')
+                                {
+                                    yy__result = yk__append_sds_lit(yy__result, "\\t" , 2);
+                                }
+                                else
+                                {
+                                    yk__sds t__3 = yy__append_char(yk__bstr_h(yy__result), yy__cur);
+                                    yk__sdsfree(yy__result);
+                                    yy__result = yk__sdsdup(t__3);
+                                    yk__sdsfree(t__3);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    yk__sds t__4 = yy__result;
+    return t__4;
+}
+yk__sds yy__file_entries_to_json(struct yy__dtraverse_Entry** yy__entries) 
+{
+    yk__sds yy__json = yk__sdsnewlen("[" , 1);
+    int32_t yy__counter = INT32_C(0);
+    struct yy__dtraverse_Entry** yy__0t = yy__entries;
+    int32_t yy__1t = INT32_C(0);
+    int32_t yy__2t = yk__arrlen(yy__0t);
+    while (true)
+    {
+        if (!(yy__1t < yy__2t))
+        {
+            break;
+        }
+        yy__json = yk__append_sds_lit(yy__json, "{" , 1);
+        yk__sds t__5 = yy__escape_js_string(yk__bstr_h((yy__0t[yy__1t])->yy__dtraverse_name));
+        yk__sds t__6 = yk__concat_lit_sds("\"name\": \"", 9, t__5);
+        yk__sds t__7 = yk__concat_sds_lit(t__6, "\",", 2);
+        yy__json = yk__append_sds_sds(yy__json, t__7);
+        yk__sds t__8 = yk__concat_lit_bstr("\"type\": \"", 9, ((yy__0t[yy__1t])->yy__dtraverse_is_dir ? yk__bstr_s("d", 1) : yk__bstr_s("f", 1)));
+        yk__sds t__9 = yk__concat_sds_lit(t__8, "\"", 1);
+        yy__json = yk__append_sds_sds(yy__json, t__9);
+        yy__json = yk__append_sds_lit(yy__json, "}" , 1);
+        if (yy__counter < (yk__arrlen(yy__entries) - INT32_C(1)))
+        {
+            yy__json = yk__append_sds_lit(yy__json, "," , 1);
+        }
+        yy__counter += INT32_C(1);
+        yy__1t += INT32_C(1);
+        yk__sdsfree(t__9);
+        yk__sdsfree(t__8);
+        yk__sdsfree(t__7);
+        yk__sdsfree(t__6);
+        yk__sdsfree(t__5);
+    }
+    yy__json = yk__append_sds_lit(yy__json, "]" , 1);
+    yk__sds t__10 = yy__json;
+    return t__10;
+}
+void yy__list_files(yy__webui_Event yy__event) 
 {
     struct yy__dtraverse_Entry** yy__f = yy__dtraverse_listdir(yk__bstr_s(".", 1));
+    yk__sds t__11 = yy__file_entries_to_json(yy__f);
+    yk__sds yy__json = yk__sdsdup(t__11);
+    yy__webui_return_string(yy__event, ((yy__c_CStr)yy__json));
+    yk__sdsfree(yy__json);
+    yk__sdsfree(t__11);
+    return;
+}
+int32_t yy__main() 
+{
     yy__c_Size yy__mw = yy__webui_new_window();
     yk__printlnstr("created window");
     yy__webui_set_root_folder(yy__mw, "frontend");
     yy__webui_show(yy__mw, "index.html");
+    yy__webui_bind(yy__mw, "listfiles", yy__list_files);
     yk__printlnstr("waiting ... ");
     yy__webui_wait();
     yk__printlnstr("done");
