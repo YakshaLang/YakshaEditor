@@ -5,6 +5,7 @@ import libs.console
 
 import dtraverse as dt
 
+# TODO move this to numbers
 macros! {
     (defun remove_first_last (s)
         (= x (explode_string s))
@@ -21,6 +22,7 @@ macros! {
     # char!{"a"} --> inlinec("int", "'a'")
 }
 
+# TODO consider adding this to standard library
 @native
 def append_char(s: sr, character: int) -> str:
     ccode """size_t length = yk__bstr_len(nn__s);
@@ -30,6 +32,8 @@ def append_char(s: sr, character: int) -> str:
     result[length] = nn__character;
     return result"""
 
+# TODO move this to strings
+# TODO use string buffer
 def escape_js_string(s: sr) -> str:
     length = len(s)
     result: str = ""
