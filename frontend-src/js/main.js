@@ -50,29 +50,29 @@ $(document).ready(function () {
         }
     });
     // Set up the editor
-        monaco.languages.register({
-            id: 'yaksha'
-        });
-        monaco.languages.setMonarchTokensProvider('yaksha',
-            yaksha_tokenizer_rules());
-        monaco.languages.setLanguageConfiguration('yaksha',
-            yaksha_configuration());
-        monaco.editor.defineTheme('vs-yaksha-theme', {
-            colors: {},
-            base: 'vs',
-            inherit: true,
-            rules: yaksha_vs_extend_colors()
+    monaco.languages.register({
+        id: 'yaksha'
+    });
+    monaco.languages.setMonarchTokensProvider('yaksha',
+        yaksha_tokenizer_rules());
+    monaco.languages.setLanguageConfiguration('yaksha',
+        yaksha_configuration());
+    monaco.editor.defineTheme('vs-yaksha-theme', {
+        colors: {"editor.background": '#0a0a1b'},
+        base: 'vs-dark',
+        inherit: true,
+        rules: yaksha_vs_extend_colors()
+    });
+
+    window.editor =
+        monaco.editor.create(document.getElementById('editor'), {
+            theme: 'vs-yaksha-theme',
+            value: yaksha_init_code() + "\n",
+            language: 'yaksha',
+            automaticLayout: true,
+            bracketPairColorization: {enabled: true},
         });
 
-        window.editor =
-            monaco.editor.create(document.getElementById('editor'), {
-                theme: 'vs-yaksha-theme',
-                value: yaksha_init_code() + "\n",
-                language: 'yaksha',
-                automaticLayout: true,
-                bracketPairColorization: {enabled: true},
-            });
-
-        $('#loading-animation').remove();
-        setTimeout(listfiles, 300);
+    $('#loading-animation').remove();
+    setTimeout(listfiles, 300);
 });
