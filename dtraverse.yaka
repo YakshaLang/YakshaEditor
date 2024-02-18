@@ -14,7 +14,6 @@ DT_LNK: Const[c.CInt] = ccode "DT_LNK"
 
 @nativedefine("struct dirent *")
 class DirEntryObject:
-    d_namlen: c.Size
     d_type: c.CInt
     d_name: c.CStr
 
@@ -51,7 +50,7 @@ def listdir(directory: sr) -> Array[Entry]:
             break
         if de.d_type != DT_DIR and de.d_type != DT_REG:
             continue
-        name = r.wrap_cstr(de.d_name, cast("int", de.d_namlen))
+        name = r.wrap_cstr_z(de.d_name)
         item = Entry()
         item.name = name
         item.is_dir = de.d_type == DT_DIR

@@ -9,9 +9,12 @@ struct yy__dtraverse_Entry;
 #define yy__dtraverse_opendir opendir
 #define yy__dtraverse_readdir readdir
 #define yy__dtraverse_closedir closedir
+#define yy__refs_unwrap yk__bstr_get_reference
+#define yy__refs_wrap_cstr yk__bstr_c
 #define yy__c_Size size_t
 #define yy__c_CStr char*
 #define yy__c_CInt int
+#define yy__c_cstrlen strlen
 #define yy__webui_Event webui_event_t*
 #define yy__webui_new_window webui_new_window
 #define yy__webui_bind webui_bind
@@ -22,8 +25,7 @@ struct yy__dtraverse_Entry;
 #define yy__webui_return_string webui_return_string
 struct yy__dtraverse_Entry** yy__dtraverse_listdir(struct yk__bstr);
 int32_t yy__console_getch();
-yy__c_CStr const  yy__refs_unwrap(struct yk__bstr);
-struct yk__bstr yy__refs_wrap_cstr(yy__c_CStr, int32_t);
+struct yk__bstr yy__refs_wrap_cstr_z(yy__c_CStr);
 yk__sds yy__append_char(struct yk__bstr, int32_t);
 yk__sds yy__escape_js_string(struct yk__bstr);
 yk__sds yy__file_entries_to_json(struct yy__dtraverse_Entry**);
@@ -55,7 +57,7 @@ struct yy__dtraverse_Entry** yy__dtraverse_listdir(struct yk__bstr yy__dtraverse
         {
             continue;
         }
-        struct yk__bstr yy__dtraverse_name = yy__refs_wrap_cstr(yy__dtraverse_de->d_name, ((int32_t)yy__dtraverse_de->d_namlen));
+        struct yk__bstr yy__dtraverse_name = yy__refs_wrap_cstr_z(yy__dtraverse_de->d_name);
         struct yy__dtraverse_Entry* yy__dtraverse_item = calloc(1, sizeof(struct yy__dtraverse_Entry));
         yy__dtraverse_item->yy__dtraverse_name = yk__bstr_copy_to_sds(yy__dtraverse_name);
         yy__dtraverse_item->yy__dtraverse_is_dir = (yy__dtraverse_de->d_type == yy__dtraverse_DT_DIR);
@@ -69,8 +71,11 @@ int32_t yy__console_getch()
 {
     return yk__getch();
 }
-yy__c_CStr const  yy__refs_unwrap(struct yk__bstr nn__a) { return yk__bstr_get_reference(nn__a); }
-struct yk__bstr yy__refs_wrap_cstr(yy__c_CStr nn__s, int32_t nn__length) { return yk__bstr_c(nn__s, nn__length); }
+struct yk__bstr yy__refs_wrap_cstr_z(yy__c_CStr yy__refs_s) 
+{
+    struct yk__bstr t__0 = yy__refs_wrap_cstr(yy__refs_s, ((int32_t)yy__c_cstrlen(yy__refs_s)));
+    return t__0;
+}
 yk__sds yy__append_char(struct yk__bstr nn__s, int32_t nn__character) 
 {
     size_t length = yk__bstr_len(nn__s);
