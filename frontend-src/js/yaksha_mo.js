@@ -173,12 +173,12 @@ function yaksha_tokenizer_rules() {
 
         tokenizer: {
             root: [
-                [/macros\s*!\s*[{]/, {
+                [/macros!\s*[{]/, {
                     token: 'macros-block.start',
                     bracket: '@open',
                     next: '@mb'
                 }],
-                [/([a-zA-Z_][a-zA-Z0-9_]*[.])?[a-zA-Z_][a-zA-Z0-9_]*\s*!/,
+                [/([a-zA-Z_][a-zA-Z0-9_]*[.])?[a-zA-Z_][a-zA-Z0-9_]*!/,
                     'macros-invoke'],
                 // matches things like -- Node, c.CStr
                 [/([a-zA-Z_][a-zA-Z0-9_]*[.])?[A-Z]\w*/, 'type.identifier'],

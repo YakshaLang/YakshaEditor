@@ -1,33 +1,72 @@
+let STATE = {
+    listfiles_init: false,
+    listfiles_err: 0,
+    default_retries: 3,
+    default_timeout: 300,
+    current_file: "",
+    current_file_type: "",
+    current_file_dirty: false,
+    last_saved_version_id: "---",
+};
+
+// https://github.com/Microsoft/monaco-editor/issues/353
+
+function update_file_list(data) {
+    let html = "";
+    const files = JSON.parse(data).sort((a, b) => {
+        if (a.type === "d" && b.type === "f") {
+            return -1;
+        }
+        if (a.type === "f" && b.type === "d") {
+            return 1;
+        }
+        return a.name.localeCompare(b.name);
+
+    });
+
+    for (let f of files) {
+        if (f.name === ".") {
+            continue;
+        }
+        const fType = (f.type === "d" ? "folder" : "file");
+        const htmlClass = fType
+            // + (f.path === path ? " current-file" : "")
+            + (f.name === ".." ? " red-folder" : "");
+        const icon = fType === "folder" ? FOLDER : FILE;
+        html += "<div onclick='clickfile(" + quoteJsThenEscapeHtml(f.name)
+            + "," + quoteJsThenEscapeHtml(fType) + ")' class='" +
+            htmlClass + "'>"
+            + icon + " <span>" + escapeHtml(f.name) + "</span></div>"
+    }
+    $("#filebrowser").html(html);
+}
+
 function listfiles() {
     webui.call('listfiles').then(function (data) {
-        let html = "";
-        const files = JSON.parse(data).sort((a, b) => {
-            if (a.type === "d" && b.type === "f") {
-                return -1;
-            }
-            if (a.type === "f" && b.type === "d") {
-                return 1;
-            }
-            return a.name.localeCompare(b.name);
-
-        });
-
-        for (let f of files) {
-            if (f.name === ".") {
-                continue;
-            }
-            const fType = (f.type === "d" ? "folder" : "file");
-            const htmlClass = fType
-                // + (f.path === path ? " current-file" : "")
-                + (f.name === ".." ? " red-folder" : "");
-            const icon = fType === "folder" ? FOLDER : FILE;
-            html += "<div onclick='clickFile(" + quoteJsThenEscapeHtml(f.name)
-                + "," + quoteJsThenEscapeHtml(fType) + ")' class='" +
-                htmlClass + "'>"
-                + icon + " <span>" + escapeHtml(f.name) + "</span></div>"
+        update_file_list(data);
+        STATE.listfiles_init = true;
+        STATE.listfiles_err = 0;
+        console.log("file list completed");
+    }).catch(function (error) {
+        if (!STATE.listfiles_init) {
+            STATE.listfiles_err++;
         }
-        $("#filebrowser").html(html);
+        if (!STATE.listfiles_init && STATE.listfiles_err <
+            STATE.default_retries) {
+            setTimeout(listfiles, STATE.default_timeout);
+        }
     });
+}
+
+function clickfile(name, type) {
+    if (type === "folder") {
+
+    } else {
+        webui.call('clickfile', name).then(function (data) {
+            editor.setValue(data);
+        });
+    }
+
 }
 
 $(document).ready(function () {
@@ -36,6 +75,11 @@ $(document).ready(function () {
         if ((e.ctrlKey || e.metaKey) && (e.code === e.KeyS)) {
             e.preventDefault();
             console.log("Ctrl + S pressed!");
+            return false;
+        }
+        if ((e.ctrlKey || e.metaKey) && (e.code === e.KeyO)) {
+            e.preventDefault();
+            console.log("Ctrl + O pressed!");
             return false;
         }
         if ((e.ctrlKey || e.metaKey) && (e.code === e.KeyO)) {
@@ -49,7 +93,6 @@ $(document).ready(function () {
             return false;
         }
     });
-    // Set up the editor
     monaco.languages.register({
         id: 'yaksha'
     });
@@ -61,7 +104,7 @@ $(document).ready(function () {
         colors: {"editor.background": '#0a0a1b'},
         base: 'vs-dark',
         inherit: true,
-        rules: yaksha_vs_extend_colors()
+        rules: yaksha_vs_extend_colors(),
     });
 
     window.editor =
@@ -74,5 +117,5 @@ $(document).ready(function () {
         });
 
     $('#loading-animation').remove();
-    setTimeout(listfiles, 300);
+    setTimeout(listfiles, STATE.default_timeout);
 });

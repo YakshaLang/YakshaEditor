@@ -3,21 +3,21 @@ html {
     color: #ffffff;
 }
 
-/* Neomorphic buttons */
+/* Neomorphic buttons  -- with Increased contrast */
 button {
     display: inline-block;
     border: none;
     border-radius: 50px; /* Adjust the value to control the roundness */
     padding: 5px; /* Adjust padding as needed */
-    background-color: #272765; /* Background color of the container pane */
+    background-color: #5252be; /* Background color of the container pane */
     box-shadow: 0px 0px 8px rgba(0, 0, 0, 0.1), 0px 0px 12px rgba(0, 0, 0, 0.2), inset 2px 2px 5px rgba(255, 255, 255, 0.05), inset -2px -2px 5px rgba(0, 0, 0, 0.2); /* Neumorphic shadow effect */
-    color: #00FFFF; /* Neon blue font color */
+    color: #ffd10c; /* Neon blue font color */
     font-size: 16px; /* Font size */
     font-weight: bold; /* Font weight */
     text-decoration: none; /* Remove underline */
     cursor: pointer; /* Cursor style */
     transition: all 0.3s ease; /* Smooth transition */
-    text-shadow: 0 0 10px #00FFFF, 0 0 20px #00FFFF, 0 0 30px #00FFFF, 0 0 40px #00FFFF, 0 0 50px #00FFFF, 0 0 60px #00FFFF, 0 0 70px #00FFFF; /* Neon text shadow */
+    text-shadow: 0 0 10px #ffd10c, 0 0 20px #00FFFF, 0 0 30px #ffd10c, 0 0 40px #00FFFF, 0 0 50px #ffd10c, 0 0 60px #00FFFF, 0 0 70px #ffd10c; /* Neon text shadow */
 }
 
 button:hover {
@@ -40,6 +40,26 @@ button:active {
     height: calc(100% - 80px);
     width: calc(100% - 4px);
     overflow-y: scroll;
+
+    scrollbar-width: thin; /* Adjust the width of the scrollbar */
+    scrollbar-color: #666666 #272765; /* Thumb color Track color */
+}
+
+#filebrowser::-webkit-scrollbar-track {
+    background-color: #272765;
+}
+
+#filebrowser::-webkit-scrollbar-thumb {
+    background-color: #666666;
+    border-radius: 10px;
+}
+
+#filebrowser::-webkit-scrollbar-thumb:hover {
+    background-color: #888888;
+}
+
+#filebrowser::-webkit-scrollbar-thumb:active {
+    background-color: #aaaaaa;
 }
 
 .suggestions {
@@ -48,7 +68,7 @@ button:active {
 }
 
 .filebrowser {
-    padding: 10px !important;
+    padding: 4px !important;
 }
 
 .folder {

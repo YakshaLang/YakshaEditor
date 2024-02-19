@@ -22,9 +22,9 @@ add_custom_command(OUTPUT ${yaksha_editor}
         COMMAND ${YK_COMPILER_PATH} compile ${yaksha_main} > ${yaksha_editor}
         COMMAND ${CMAKE_COMMAND} -E touch ${yaksha_editor}
         DEPENDS ${yaksha_main} ${yaksha_webui} ${yaksha_dtraverse} ${yaksha_dialogs}
-        COMMENT "Compiling Yaksha source")
+        COMMENT "Compiling Yaksha source code for YakshaEditor")
 
-add_custom_target(compile_yaksha_code DEPENDS yaksha_editor.c
+add_custom_target(compile_yaksha_code DEPENDS ${yaksha_editor}
         COMMENT "Checking if re-compilation is required")
 # --------------------------------------------------------------------------------------------------
 # Compile YakshaEditor

@@ -22,14 +22,17 @@ struct yy__dtraverse_Entry;
 #define yy__webui_wait webui_wait
 #define yy__webui_set_root_folder webui_set_root_folder
 #define yy__webui_clean webui_clean
+#define yy__webui_get_string webui_get_string
 #define yy__webui_return_string webui_return_string
 struct yy__dtraverse_Entry** yy__dtraverse_listdir(struct yk__bstr);
+yk__sds yy__io_readfile(yk__sds);
 int32_t yy__console_getch();
 struct yk__bstr yy__refs_wrap_cstr_z(yy__c_CStr);
 yk__sds yy__append_char(struct yk__bstr, int32_t);
 yk__sds yy__escape_js_string(struct yk__bstr);
 yk__sds yy__file_entries_to_json(struct yy__dtraverse_Entry**);
 void yy__list_files(yy__webui_Event);
+void yy__click_file(yy__webui_Event);
 int32_t yy__main();
 // --structs-- 
 struct yy__dtraverse_Entry {
@@ -67,6 +70,7 @@ struct yy__dtraverse_Entry** yy__dtraverse_listdir(struct yk__bstr yy__dtraverse
     yy__dtraverse_closedir(yy__dtraverse_p);
     return t__4;
 }
+yk__sds yy__io_readfile(yk__sds nn__fname) { return yk__io_readfile(nn__fname); }
 int32_t yy__console_getch() 
 {
     return yk__getch();
@@ -198,6 +202,17 @@ void yy__list_files(yy__webui_Event yy__event)
     yk__sdsfree(t__11);
     return;
 }
+void yy__click_file(yy__webui_Event yy__event) 
+{
+    yy__c_CStr yy__path_cstr = yy__webui_get_string(yy__event);
+    struct yk__bstr yy__path = yy__refs_wrap_cstr_z(yy__path_cstr);
+    yk__sds t__12 = yy__io_readfile(yk__bstr_copy_to_sds(yy__path));
+    yk__sds yy__content = yk__sdsdup(t__12);
+    yy__webui_return_string(yy__event, ((yy__c_CStr)yy__content));
+    yk__sdsfree(yy__content);
+    yk__sdsfree(t__12);
+    return;
+}
 int32_t yy__main() 
 {
     yy__c_Size yy__mw = yy__webui_new_window();
@@ -205,6 +220,7 @@ int32_t yy__main()
     yy__webui_set_root_folder(yy__mw, "frontend");
     yy__webui_show(yy__mw, "index.html");
     yy__webui_bind(yy__mw, "listfiles", yy__list_files);
+    yy__webui_bind(yy__mw, "clickfile", yy__click_file);
     yk__printlnstr("waiting ... ");
     yy__webui_wait();
     yk__printlnstr("done");

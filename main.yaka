@@ -2,6 +2,7 @@ import webui as w
 import libs.c
 import libs.strings.refs as r
 import libs.console
+import libs.io
 
 import dtraverse as dt
 
@@ -78,6 +79,18 @@ def list_files(event: w.Event) -> None:
     json: str = file_entries_to_json(f)
     w.return_string(event, cast("c.CStr", json))
 
+def click_file(event: w.Event) -> None:
+    path_cstr: c.CStr = w.get_string(event)
+    path: sr = r.wrap_cstr_z(path_cstr)
+    content = io.readfile(path)
+    w.return_string(event, cast("c.CStr", content))
+
+def navigate_to(event: w.Event) -> None:
+    path_cstr: c.CStr = w.get_string(event)
+    path: sr = r.wrap_cstr_z(path_cstr)
+    print("navigating to: ")
+    println(path)
+
 def main() -> int:
     mw = w.new_window()
     println("created window")
@@ -86,6 +99,7 @@ def main() -> int:
     w.show(mw, c.cstr!{"index.html"})
 
     w.bind(mw, c.cstr!{"listfiles"}, list_files)
+    w.bind(mw, c.cstr!{"clickfile"}, click_file)
     println("waiting ... ")
     w.wait()
     println("done")
