@@ -9,7 +9,7 @@ let STATE = {
     last_saved_version_id: "---",
 };
 
-// https://github.com/Microsoft/monaco-editor/issues/353
+// dirty state --> https://github.com/Microsoft/monaco-editor/issues/353
 
 function update_file_list(data) {
     let html = "";
@@ -30,7 +30,7 @@ function update_file_list(data) {
         }
         const fType = (f.type === "d" ? "folder" : "file");
         const htmlClass = fType
-            // + (f.path === path ? " current-file" : "")
+            + (f.name === STATE.current_file ? " current-file" : "")
             + (f.name === ".." ? " red-folder" : "");
         const icon = fType === "folder" ? FOLDER : FILE;
         html += "<div onclick='clickfile(" + quoteJsThenEscapeHtml(f.name)
@@ -58,12 +58,80 @@ function listfiles() {
     });
 }
 
+function set_editor_value(data) {
+    editor.getModel().setValue('');
+    editor.getModel().setValue(data);
+    editor.setScrollPosition({scrollTop: 0});
+    editor.focus();
+}
+
+const EXTENSION_TO_LANGUAGE = {
+    "yaka": "yaksha",
+    "l": "lisp",
+    "json": "json",
+    "js": "javascript",
+    "html": "html",
+    "css": "css",
+    "md": "markdown",
+    "txt": "plaintext",
+    "": "plaintext",
+    "c": "cpp",
+    "cpp": "cpp",
+    "h": "cpp",
+    "hpp": "cpp",
+    "cc": "cpp",
+    "hh": "cpp",
+    "cxx": "cpp",
+    "hxx": "cpp",
+    "py": "python",
+    "java": "java",
+    "sh": "shell",
+    "yaml": "yaml",
+    "xml": "xml",
+    "sql": "sql",
+    "php": "php",
+    "go": "go",
+    "rb": "ruby",
+    "rs": "rust",
+    "swift": "swift",
+    "kt": "kotlin",
+    "cs": "csharp",
+    "ts": "typescript",
+    "tsx": "typescript",
+    "jsx": "javascript",
+    "rst": "restructuredtext",
+    "mdx": "markdown",
+    "mjs": "javascript",
+    "cmd": "powershell",
+    "bat": "powershell",
+    "ps1": "powershell",
+    "lua": "lua",
+};
+
+const FILENAME_TO_LANGUAGE = {
+    "Makefile": "shell",
+    "Dockerfile": "shell",
+    "CMakeLists.txt": "yaksha",
+    ".gitignore": "yaksha",
+    ".clang-format": "yaksha",
+    ".gitattributes": "yaksha",
+    ".gitmodules": "yaksha",
+}
+
+function set_editor_language(filename) {
+    const ext = extension(filename);
+    let lang = FILENAME_TO_LANGUAGE[filename] ||  EXTENSION_TO_LANGUAGE[ext] || "plaintext";
+    monaco.editor.setModelLanguage(editor.getModel(), lang);
+}
+
 function clickfile(name, type) {
     if (type === "folder") {
 
     } else {
         webui.call('clickfile', name).then(function (data) {
-            editor.setValue(data);
+            set_editor_value(data);
+            STATE.current_file = name;
+            set_editor_language(name);
         });
     }
 

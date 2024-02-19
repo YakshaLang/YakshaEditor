@@ -17,7 +17,7 @@ button {
     text-decoration: none; /* Remove underline */
     cursor: pointer; /* Cursor style */
     transition: all 0.3s ease; /* Smooth transition */
-    text-shadow: 0 0 10px #ffd10c, 0 0 20px #00FFFF, 0 0 30px #ffd10c, 0 0 40px #00FFFF, 0 0 50px #ffd10c, 0 0 60px #00FFFF, 0 0 70px #ffd10c; /* Neon text shadow */
+    text-shadow: 0 0 10px #0f0f41, 0 0 20px #0f0f41, 0 0 30px #0f0f41, 0 0 40px #0f0f41, 0 0 50px #0f0f41, 0 0 60px #0f0f41, 0 0 70px #0f0f41;
 }
 
 button:hover {

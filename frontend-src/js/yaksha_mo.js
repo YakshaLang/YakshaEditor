@@ -15,6 +15,31 @@ function yaksha_tokenizer_rules() {
         ],
 
         lispBuiltins: [
+            "while",
+            "try_catch", "try", "true", "to_string",
+            "to_int", "time", "this", "tail", "system_unlock_root_scope",
+            "system_lock_root_scope",
+            "system_enable_print", "system_enable_gc", "system_disable_print",
+            "system_disable_gc", "sorted", "setq",
+            "scope", "reversed", "repr", "remove", "reduce", "range", "random",
+            "raise_error", "quote", "push",
+            "println", "print", "pop", "parse", "parent", "os_shell", "os_exec",
+            "or", "not", "noop", "nil", "newline"
+            , "modulo", "metamacro", "map_values", "map_set", "map_remove",
+            "map_keys", "map_has", "map_get", "map",
+            "magic_dot", "list", "len", "lambda", "is_truthy", "is_string",
+            "is_nil", "is_module", "is_metamacro",
+            "is_list", "is_int", "is_callable", "io_write_file", "io_read_file",
+            "insert", "input", "index", "if",
+            "head", "ghost", "for", "filter", "false", "eval", "do", "defun",
+            "define", "def", "cons", "cond",
+            "bitwise_xor", "bitwise_right_shift", "bitwise_or", "bitwise_not",
+            "bitwise_left_shift", "bitwise_and",
+            "and", "access_module", "explode_string", ">=", ">",
+            "==", "=", "<=", "<", "/", "-", "+", "*", "!="
+        ],
+
+        lispYakshaSpecificBuiltins: [
             "yk_import_ref",
             "ykt_xor_eq", "ykt_xor", "ykt_tilde", "ykt_sub_eq",
             "ykt_sub", "ykt_string", "ykt_square_bracket_open",
@@ -45,27 +70,12 @@ function yaksha_tokenizer_rules() {
             "ykt_colon", "ykt_at", "ykt_arrow",
             "ykt_and_eq", "ykt_and", "yk_what", "yk_register", "yk_is_token",
             "yk_is_stmt", "yk_is_expr",
-            "yk_get_type", "yk_create_token", "yk_assert_token", "while",
-            "try_catch", "try", "true", "to_string",
-            "to_int", "time", "this", "tail", "system_unlock_root_scope",
-            "system_lock_root_scope",
-            "system_enable_print", "system_enable_gc", "system_disable_print",
-            "system_disable_gc", "sorted", "setq",
-            "scope", "reversed", "repr", "remove", "reduce", "range", "random",
-            "raise_error", "quote", "push",
-            "println", "print", "pop", "parse", "parent", "os_shell", "os_exec",
-            "or", "not", "noop", "nil", "newline"
-            , "modulo", "metamacro", "map_values", "map_set", "map_remove",
-            "map_keys", "map_has", "map_get", "map",
-            "magic_dot", "list", "len", "lambda", "is_truthy", "is_string",
-            "is_nil", "is_module", "is_metamacro",
-            "is_list", "is_int", "is_callable", "io_write_file", "io_read_file",
-            "insert", "input", "index", "if",
-            "head", "ghost", "for", "filter", "false", "eval", "do", "defun",
-            "define", "def", "cons", "cond",
-            "bitwise_xor", "bitwise_right_shift", "bitwise_or", "bitwise_not",
-            "bitwise_left_shift", "bitwise_and",
-            "and", "access_module", "YK_TYPE_TOKEN", "YK_TOKEN_XOR_EQ",
+            "yk_get_type", "yk_create_token", "yk_assert_token",
+        ],
+
+        lispYakshaTokenTypes: [
+            "YK_TYPE_TOKEN",
+            "YK_TOKEN_XOR_EQ",
             "YK_TOKEN_XOR", "YK_TOKEN_UINTEGER_OCT_8",
             "YK_TOKEN_UINTEGER_OCT_64", "YK_TOKEN_UINTEGER_OCT_16",
             "YK_TOKEN_UINTEGER_OCT", "YK_TOKEN_UINTEGER_HEX_8"
@@ -122,8 +132,7 @@ function yaksha_tokenizer_rules() {
             "YK_TOKEN_COLON", "YK_TOKEN_BA_INDENT", "YK_TOKEN_BA_DEDENT",
             "YK_TOKEN_AT", "YK_TOKEN_ARROW",
             "YK_TOKEN_AND_EQ", "YK_TOKEN_AND", "YK_PRELUDE_INCLUDED",
-            "YK_OBJECT_TYPE", "YK_KEY_WHAT", ">=", ">",
-            "==", "=", "<=", "<", "/", "-", "+", "*", "!="
+            "YK_OBJECT_TYPE", "YK_KEY_WHAT",
         ],
 
         builtins: [
@@ -193,7 +202,6 @@ function yaksha_tokenizer_rules() {
                     }
                 }],
 
-
                 {include: '@whitespace'},
 
                 [/[{}()\[\]]/, 'brackets'],
@@ -220,6 +228,11 @@ function yaksha_tokenizer_rules() {
                 [/[;,.]/, 'delimiter'],
 
                 // strings
+                [/"""/, {
+                    token: 'string.multi',
+                    bracket: '@open',
+                    next: '@stringmulti'
+                }],
                 [/"([^"\\]|\\.)*$/, 'string.invalid'],  // non-terminated string
                 [/"/,
                     {token: 'string.quote', bracket: '@open', next: '@string'}],
@@ -238,12 +251,28 @@ function yaksha_tokenizer_rules() {
                 }]
             ],
 
+            stringmulti: [
+                [/"""/, {
+                    token: 'string.multi', bracket: '@close', next: '@pop'
+                }],
+                [/[^\\"]+/, 'string.multi'],
+                [/@escapes/, 'string.escape'],
+                [/\\./, 'string.escape.invalid'],
+            ],
+
             mb: [
+                [/"""/, {
+                    token: 'string.multi',
+                    bracket: '@open',
+                    next: '@stringmulti'
+                }],
                 [/"/,
                     {token: 'string.quote', bracket: '@open', next: '@string'}],
                 [/[a-zA-Z_][a-zA-Z0-9_]*/, {
                     'cases': {
                         '@lispBuiltins': 'lisp-builtins',
+                        '@lispYakshaSpecificBuiltins': 'lisp-builtins-yaksha',
+                        '@lispYakshaTokenTypes': 'lisp-builtins-yaksha-tokens',
                         '@default': 'identifier'
                     }
                 }],
@@ -316,11 +345,20 @@ function yaksha_vs_extend_colors() {
         },
         {
             token: 'lisp-builtins',
-            foreground: 'e83cac',
+            foreground: '4591ff',
             fontStyle: 'bold'
         },
         {
             token: 'builtins',
+            foreground: '4591ff',
+            fontStyle: 'bold'
+        },
+        {
+            token: 'lisp-builtins-yaksha',
+            foreground: 'e83cac',
+        },
+        {
+            token: 'lisp-builtins-yaksha-tokens',
             foreground: 'e83cac',
             fontStyle: 'bold'
         },
