@@ -284,8 +284,8 @@ cython_debug/
 
 .idea/
 **/node_modules/
-/cmake-build-debug/
-/cmake-build-release/
+/cmake-build-debug*
+/cmake-build-release*
 
 *.LICENSE.txt
 frontend/js/monaco/*.js

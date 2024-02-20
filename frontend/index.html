@@ -6,7 +6,11 @@
     <link rel="stylesheet" href="./css/main.min.css">
     <meta http-equiv="Content-Security-Policy" content="font-src 'self'">
     <title>😈 Yaksha Editor</title>
-     <script src="./js/monaco/monaco.bundle.js"></script>
+    <!--   v0.45, to update just replace content with a new version of min directory   -->
+    <script src="/js/monaco/dev/vs/loader.js"></script>
+    <script>
+        require.config({paths: {vs: '/js/monaco/dev/vs'}});
+    </script>
 </head>
 <body>
 <div id="container">
@@ -25,6 +29,7 @@
         <div style="padding-bottom: 5px">
             <button title="Open a file to edit" onclick=""><span class='codicon codicon-folder-opened'></span></button>
             <button title="Save file" onclick=""><span class='codicon codicon-save'></span></button>
+            <button title="Run" onclick=""><span class='codicon codicon-play'></span></button>
         </div>
         <div style="padding-bottom: 5px;">
             <button title="Refresh files" onclick="listfiles()"><span class='codicon codicon-refresh'></span></button>
@@ -40,6 +45,6 @@
 </div>
 <!-- ========= MAIN CODE ============= !-->
 <script src="/webui.js"></script>
-<script src="./js/main.min.js"></script>
+<script src="/js/main.min.js"></script>
 </body>
 </html>

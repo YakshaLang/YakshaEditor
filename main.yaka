@@ -3,7 +3,7 @@ import libs.c
 import libs.strings.refs as r
 import libs.console
 import libs.io
-
+import libs.os
 import dtraverse as dt
 
 # TODO move this to numbers
@@ -74,6 +74,15 @@ def file_entries_to_json(entries: Array[dt.Entry]) -> str:
     json += "]"
     return json
 
+def get_compilation_errors(event: w.Event) -> None:
+    yaka = os.which("yaksha")
+    if yaka == "":
+        w.return_string(event, cast("c.CStr", "yaksha not found"))
+        return
+    arguments: Array[str] = array("str", "yaksha", "compile", "main.yaka")
+    result = os.run(arguments)
+    w.return_string(event, cast("c.CStr", "[]"))
+
 def list_files(event: w.Event) -> None:
     f = dt.listdir(".")
     json: str = file_entries_to_json(f)
@@ -85,21 +94,34 @@ def click_file(event: w.Event) -> None:
     content = io.readfile(path)
     w.return_string(event, cast("c.CStr", content))
 
-def navigate_to(event: w.Event) -> None:
+def change_folder(event: w.Event) -> None:
     path_cstr: c.CStr = w.get_string(event)
     path: sr = r.wrap_cstr_z(path_cstr)
-    print("navigating to: ")
-    println(path)
+    success: bool = os.chdir(path)
+    if not success:
+        w.return_string(event, c.cstr!{"Failed to change directory"})
+    else:
+        w.return_string(event, c.cstr!{"OK"})
+
 
 def main() -> int:
     mw = w.new_window()
     println("created window")
+    yaksha = os.which("yaksha")
+    if yaksha == "":
+        println("yaksha not found")
+        return 1
+    println("yaksha binary found at: " + yaksha)
     w.set_root_folder(mw, c.cstr!{"frontend"})
     # w.bind(mw, "__close-btn", on_close)
     w.show(mw, c.cstr!{"index.html"})
 
+    # bind events
     w.bind(mw, c.cstr!{"listfiles"}, list_files)
     w.bind(mw, c.cstr!{"clickfile"}, click_file)
+    w.bind(mw, c.cstr!{"cd"}, change_folder)
+
+    # exit
     println("waiting ... ")
     w.wait()
     println("done")

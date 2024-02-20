@@ -55,6 +55,7 @@ function listfiles() {
             STATE.default_retries) {
             setTimeout(listfiles, STATE.default_timeout);
         }
+        console.error("listfiles error", error);
     });
 }
 
@@ -67,9 +68,9 @@ function set_editor_value(data) {
 
 const EXTENSION_TO_LANGUAGE = {
     "yaka": "yaksha",
-    "l": "lisp",
-    "json": "json",
-    "js": "javascript",
+    "l": "yaksha",
+    "json": "typescript",
+    "js": "typescript",
     "html": "html",
     "css": "css",
     "md": "markdown",
@@ -98,7 +99,7 @@ const EXTENSION_TO_LANGUAGE = {
     "cs": "csharp",
     "ts": "typescript",
     "tsx": "typescript",
-    "jsx": "javascript",
+    "jsx": "typescript",
     "rst": "restructuredtext",
     "mdx": "markdown",
     "mjs": "javascript",
@@ -116,25 +117,36 @@ const FILENAME_TO_LANGUAGE = {
     ".clang-format": "yaksha",
     ".gitattributes": "yaksha",
     ".gitmodules": "yaksha",
+    "requirements.txt": "python",
 }
 
 function set_editor_language(filename) {
     const ext = extension(filename);
-    let lang = FILENAME_TO_LANGUAGE[filename] ||  EXTENSION_TO_LANGUAGE[ext] || "plaintext";
+    let lang = FILENAME_TO_LANGUAGE[filename] || EXTENSION_TO_LANGUAGE[ext] ||
+        "plaintext";
     monaco.editor.setModelLanguage(editor.getModel(), lang);
+    console.log("set language", lang);
 }
 
 function clickfile(name, type) {
     if (type === "folder") {
-
+        webui.call('cd', name).then(function (data) {
+            console.log("cd", name, data);
+            if (data === "OK") {
+                listfiles();
+            }
+        });
     } else {
         webui.call('clickfile', name).then(function (data) {
+            set_editor_language("x.txt");
             set_editor_value(data);
             STATE.current_file = name;
-            set_editor_language(name);
+            setTimeout(function () {
+                set_editor_language(name);
+                listfiles();
+            }, STATE.default_timeout);
         });
     }
-
 }
 
 $(document).ready(function () {
@@ -161,29 +173,31 @@ $(document).ready(function () {
             return false;
         }
     });
-    monaco.languages.register({
-        id: 'yaksha'
-    });
-    monaco.languages.setMonarchTokensProvider('yaksha',
-        yaksha_tokenizer_rules());
-    monaco.languages.setLanguageConfiguration('yaksha',
-        yaksha_configuration());
-    monaco.editor.defineTheme('vs-yaksha-theme', {
-        colors: {"editor.background": '#0a0a1b'},
-        base: 'vs-dark',
-        inherit: true,
-        rules: yaksha_vs_extend_colors(),
-    });
-
-    window.editor =
-        monaco.editor.create(document.getElementById('editor'), {
-            theme: 'vs-yaksha-theme',
-            value: yaksha_init_code() + "\n",
-            language: 'yaksha',
-            automaticLayout: true,
-            bracketPairColorization: {enabled: true},
-        });
-
-    $('#loading-animation').remove();
     setTimeout(listfiles, STATE.default_timeout);
+    require(['vs/editor/editor.main'], function () {
+        console.log("monaco loaded!");
+        window.monaco_object = monaco;
+        monaco.languages.register({
+            id: 'yaksha'
+        });
+        monaco.languages.setMonarchTokensProvider('yaksha',
+            yaksha_tokenizer_rules());
+        monaco.languages.setLanguageConfiguration('yaksha',
+            yaksha_configuration());
+        monaco.editor.defineTheme('vs-yaksha-theme', {
+            colors: {"editor.background": '#0a0a1b'},
+            base: 'vs-dark',
+            inherit: true,
+            rules: yaksha_vs_extend_colors(),
+        });
+        window.editor =
+            monaco.editor.create(document.getElementById('editor'), {
+                theme: 'vs-yaksha-theme',
+                value: "",
+                language: 'yaksha',
+                automaticLayout: true,
+                bracketPairColorization: {enabled: true},
+            });
+        $('#loading-animation').remove();
+    });
 });
