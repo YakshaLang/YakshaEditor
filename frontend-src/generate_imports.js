@@ -107,12 +107,12 @@ function generateFeatures() {
     const files =
         fs
             .readFileSync(
-                path.join(__dirname, '../node_modules/monaco-editor/esm/vs/editor/edcore.main.js')
+                path.join(__dirname, './node_modules/monaco-editor/esm/vs/editor/edcore.main.js')
             )
             .toString() +
         fs
             .readFileSync(
-                path.join(__dirname, '../node_modules/monaco-editor/esm/vs/editor/editor.all.js')
+                path.join(__dirname, './node_modules/monaco-editor/esm/vs/editor/editor.all.js')
             )
             .toString();
     files.split(/\r\n|\n/).forEach((line) => {

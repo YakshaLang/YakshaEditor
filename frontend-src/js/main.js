@@ -68,7 +68,7 @@ function set_editor_value(data) {
 
 const EXTENSION_TO_LANGUAGE = {
     "yaka": "yaksha",
-    "l": "yaksha",
+    "l": "yaksha", // TODO yaksha lisp?
     "json": "typescript",
     "js": "typescript",
     "html": "html",
@@ -90,19 +90,13 @@ const EXTENSION_TO_LANGUAGE = {
     "yaml": "yaml",
     "xml": "xml",
     "sql": "sql",
-    "php": "php",
-    "go": "go",
-    "rb": "ruby",
     "rs": "rust",
-    "swift": "swift",
-    "kt": "kotlin",
-    "cs": "csharp",
     "ts": "typescript",
     "tsx": "typescript",
     "jsx": "typescript",
     "rst": "restructuredtext",
     "mdx": "markdown",
-    "mjs": "javascript",
+    "mjs": "typescript",
     "cmd": "powershell",
     "bat": "powershell",
     "ps1": "powershell",
@@ -138,13 +132,12 @@ function clickfile(name, type) {
         });
     } else {
         webui.call('clickfile', name).then(function (data) {
-            set_editor_language("x.txt");
             set_editor_value(data);
             STATE.current_file = name;
             setTimeout(function () {
-                set_editor_language(name);
                 listfiles();
-            }, STATE.default_timeout);
+                set_editor_language(name);
+            }, 0);
         });
     }
 }
@@ -173,31 +166,32 @@ $(document).ready(function () {
             return false;
         }
     });
+    const values1 = Object.values(EXTENSION_TO_LANGUAGE);
+    const values2 = Object.values(FILENAME_TO_LANGUAGE);
+    console.log("Languages", new Set([...values1, ...values2]));
+
+    const combinedValues = new Set([...values1, ...values2]);
     setTimeout(listfiles, STATE.default_timeout);
-    require(['vs/editor/editor.main'], function () {
-        console.log("monaco loaded!");
-        window.monaco_object = monaco;
-        monaco.languages.register({
-            id: 'yaksha'
-        });
-        monaco.languages.setMonarchTokensProvider('yaksha',
-            yaksha_tokenizer_rules());
-        monaco.languages.setLanguageConfiguration('yaksha',
-            yaksha_configuration());
-        monaco.editor.defineTheme('vs-yaksha-theme', {
-            colors: {"editor.background": '#0a0a1b'},
-            base: 'vs-dark',
-            inherit: true,
-            rules: yaksha_vs_extend_colors(),
-        });
-        window.editor =
-            monaco.editor.create(document.getElementById('editor'), {
-                theme: 'vs-yaksha-theme',
-                value: "",
-                language: 'yaksha',
-                automaticLayout: true,
-                bracketPairColorization: {enabled: true},
-            });
-        $('#loading-animation').remove();
+    monaco.languages.register({
+        id: 'yaksha'
     });
+    monaco.languages.setMonarchTokensProvider('yaksha',
+        yaksha_tokenizer_rules());
+    monaco.languages.setLanguageConfiguration('yaksha',
+        yaksha_configuration());
+    monaco.editor.defineTheme('vs-yaksha-theme', {
+        colors: {"editor.background": '#0a0a1b'},
+        base: 'vs-dark',
+        inherit: true,
+        rules: yaksha_vs_extend_colors(),
+    });
+    window.editor =
+        monaco.editor.create(document.getElementById('editor'), {
+            theme: 'vs-yaksha-theme',
+            value: "",
+            language: 'yaksha',
+            automaticLayout: true,
+            bracketPairColorization: {enabled: true},
+        });
+    $('#loading-animation').remove();
 });

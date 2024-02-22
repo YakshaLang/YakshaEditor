@@ -4,7 +4,7 @@ module.exports = function (grunt) {
         uglify: {
             build: {
                 files: {
-                    '../frontend/js/main.min.js': [
+                    '../frontend/main.min.js': [
                         /** ============ jquery fix ============ */
                         'js/before-scripts.js',
                         /* user interface layout */
@@ -28,7 +28,7 @@ module.exports = function (grunt) {
             },
             target: {
                 files: {
-                    '../frontend/css/main.min.css': [
+                    '../frontend/main.min.css': [
                         '3rdparty/jquery/layout-default.css',
                         'css/main.css'
                     ],
