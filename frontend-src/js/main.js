@@ -88,6 +88,7 @@ const EXTENSION_TO_LANGUAGE = {
     "java": "java",
     "sh": "shell",
     "yaml": "yaml",
+    "yml": "yaml",
     "xml": "xml",
     "sql": "sql",
     "rs": "rust",
@@ -97,8 +98,8 @@ const EXTENSION_TO_LANGUAGE = {
     "rst": "restructuredtext",
     "mdx": "markdown",
     "mjs": "typescript",
-    "cmd": "powershell",
-    "bat": "powershell",
+    "cmd": "shell",
+    "bat": "shell",
     "ps1": "powershell",
     "lua": "lua",
 };
