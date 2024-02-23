@@ -9,6 +9,9 @@ struct yy__dtraverse_Entry;
 #define yy__dtraverse_opendir opendir
 #define yy__dtraverse_readdir readdir
 #define yy__dtraverse_closedir closedir
+#define yy__path_exists yk__exists
+#define yy__path_executable yk__executable
+#define yy__array_del_str_array yk__delsdsarray
 #define yy__os_chdir yk__change_current_dir_path
 #define yy__refs_unwrap yk__bstr_get_reference
 #define yy__refs_wrap_cstr yk__bstr_c
@@ -26,6 +29,15 @@ struct yy__dtraverse_Entry;
 #define yy__webui_get_string webui_get_string
 #define yy__webui_return_string webui_return_string
 struct yy__dtraverse_Entry** yy__dtraverse_listdir(struct yk__bstr);
+bool yy__path_forward_slash();
+bool yy__path_end_with_slash(yk__sds);
+yk__sds yy__path_join(yk__sds, yk__sds);
+yk__sds* yy__strings_split(yk__sds, yk__sds);
+yk__sds yy__os_exe_path();
+yk__sds yy__os_cwd();
+bool yy__os_is_windows();
+yk__sds yy__os_getenv(yk__sds);
+yk__sds yy__os_which(yk__sds);
 yk__sds yy__io_readfile(yk__sds);
 int32_t yy__console_getch();
 struct yk__bstr yy__refs_wrap_cstr_z(yy__c_CStr);
@@ -71,6 +83,370 @@ struct yy__dtraverse_Entry** yy__dtraverse_listdir(struct yk__bstr yy__dtraverse
     struct yy__dtraverse_Entry** t__4 = yy__dtraverse_entries;
     yy__dtraverse_closedir(yy__dtraverse_p);
     return t__4;
+}
+bool yy__path_forward_slash() 
+{
+    #if defined(_WIN32) || defined(_WIN64)
+    bool bfwd = true;
+    #else
+    bool bfwd = false;
+    #endif
+    return bfwd;
+}
+bool yy__path_end_with_slash(yk__sds yy__path_a) 
+{
+    int32_t yy__path_length = yk__sdslen(yy__path_a);
+    if (yy__path_length < INT32_C(1))
+    {
+        yk__sdsfree(yy__path_a);
+        return false;
+    }
+    int32_t yy__path_chr = (yy__path_a[(yy__path_length - INT32_C(1))]);
+    bool yy__path_x = ((yy__path_chr == INT32_C(47)) || (yy__path_chr == INT32_C(92)));
+    bool t__0 = yy__path_x;
+    yk__sdsfree(yy__path_a);
+    return t__0;
+}
+yk__sds yy__path_join(yk__sds yy__path_a, yk__sds yy__path_b) 
+{
+    if (yy__path_end_with_slash(yk__sdsdup(yy__path_a)))
+    {
+        yk__sds t__1 = yk__sdscatsds(yk__sdsdup(yy__path_a), yy__path_b);
+        yk__sds t__2 = t__1;
+        yk__sdsfree(yy__path_b);
+        yk__sdsfree(yy__path_a);
+        return t__2;
+        yk__sdsfree(t__1);
+    }
+yk__sds yy__path_result = yk__sdsempty();
+    if (yy__path_forward_slash())
+    {
+        yk__sds t__3 = yk__concat_sds_lit(yy__path_a, "\\", 1);
+        yk__sds t__4 = yk__sdscatsds(yk__sdsdup(t__3), yy__path_b);
+        yk__sdsfree(yy__path_result);
+        yy__path_result = yk__sdsdup(t__4);
+        yk__sdsfree(t__4);
+        yk__sdsfree(t__3);
+    }
+    else
+    {
+        yk__sds t__5 = yk__concat_sds_lit(yy__path_a, "/", 1);
+        yk__sds t__6 = yk__sdscatsds(yk__sdsdup(t__5), yy__path_b);
+        yk__sdsfree(yy__path_result);
+        yy__path_result = yk__sdsdup(t__6);
+        yk__sdsfree(t__6);
+        yk__sdsfree(t__5);
+    }
+    yk__sds t__7 = yy__path_result;
+    yk__sdsfree(yy__path_b);
+    yk__sdsfree(yy__path_a);
+    return t__7;
+}
+yk__sds* yy__strings_split(yk__sds nn__value, yk__sds nn__sep) 
+{
+    int count;
+    yk__sds* result = yk__sdssplitlen(nn__value, yk__sdslen(nn__value),
+            nn__sep, yk__sdslen(nn__sep), &count);
+    yk__sdsfree(nn__value);
+    yk__sdsfree(nn__sep);
+    if (NULL == result) {
+        return NULL;
+    }
+    yk__sds* newarr = NULL;
+    for (int i = 0; i < count; i++) {
+        yk__arrput(newarr, result[i]);
+    }
+    free(result); // free array itself.
+    return newarr;
+}
+yk__sds yy__os_exe_path() 
+{
+    int length = wai_getExecutablePath(NULL, 0, NULL);
+    char* path = malloc(length + 1);
+    if (path == NULL) return yk__sdsempty();
+    int path_len;
+    wai_getExecutablePath(path, length, &path_len);
+    path[path_len] = '\0';
+    yk__sds value = yk__sdsnewlen(path, path_len);
+    free(path);
+    return value;
+}
+yk__sds yy__os_cwd() 
+{
+    char* path = yk__get_current_dir_path();
+    if (path == NULL) return yk__sdsempty();
+    yk__sds value = yk__sdsnewlen(path, strlen(path));
+    free(path);
+    return value;
+}
+bool yy__os_is_windows() 
+{
+    bool win = false;
+    #if defined(_WIN32) || defined(_WIN64)
+    win = true;
+    #endif
+    return win;
+}
+yk__sds yy__os_getenv(yk__sds nn__name) { return yk__getenv(nn__name); }
+yk__sds yy__os_which(yk__sds yy__os_binary) 
+{
+    yk__sds yy__os_bin1 = yk__sdsdup(yy__os_binary);
+    yk__sds yy__os_bin2 = yk__sdsdup(yy__os_binary);
+    yk__sds yy__os_bin3 = yk__sdsdup(yy__os_binary);
+    yk__sds t__0 = yy__os_getenv(yk__sdsnewlen("PATH", 4));
+    yk__sds yy__os_env = yk__sdsdup(t__0);
+    yk__sds yy__os_sep = yk__sdsnewlen(":" , 1);
+    if (yy__os_is_windows())
+    {
+        yk__sdsfree(yy__os_sep);
+        yy__os_sep = yk__sdsnewlen(";", 1);
+        yk__sds t__1 = yk__concat_sds_lit(yy__os_bin1, ".exe", 4);
+        yk__sdsfree(yy__os_bin1);
+        yy__os_bin1 = yk__sdsdup(t__1);
+        yk__sds t__2 = yk__concat_sds_lit(yy__os_bin2, ".bat", 4);
+        yk__sdsfree(yy__os_bin2);
+        yy__os_bin2 = yk__sdsdup(t__2);
+        yk__sds t__3 = yk__concat_sds_lit(yy__os_bin3, ".cmd", 4);
+        yk__sdsfree(yy__os_bin3);
+        yy__os_bin3 = yk__sdsdup(t__3);
+        yk__sdsfree(t__3);
+        yk__sdsfree(t__2);
+        yk__sdsfree(t__1);
+    }
+    yk__sds* yy__os_paths = yy__strings_split(yk__sdsdup(yy__os_env), yk__sdsdup(yy__os_sep));
+    int32_t yy__os_length = yk__arrlen(yy__os_paths);
+    while (true)
+    {
+        if (!(((yy__os_length > INT32_C(0)))))
+        {
+            break;
+        }
+        yy__os_length = (yy__os_length - INT32_C(1));
+        yk__sds yy__os_cur_path = yk__sdsdup(yy__os_paths[yy__os_length]);
+        yk__sds t__4 = yy__path_join(yk__sdsdup(yy__os_cur_path), yk__sdsdup(yy__os_bin1));
+        yk__sds yy__os_full_path = yk__sdsdup(t__4);
+        if (yy__path_executable(yk__sdsdup(yy__os_full_path)))
+        {
+            yk__sds t__5 = yy__os_full_path;
+            yy__array_del_str_array(yy__os_paths);
+            yk__sdsfree(t__4);
+            yk__sdsfree(yy__os_cur_path);
+            yk__sdsfree(yy__os_sep);
+            yk__sdsfree(yy__os_env);
+            yk__sdsfree(t__0);
+            yk__sdsfree(yy__os_bin3);
+            yk__sdsfree(yy__os_bin2);
+            yk__sdsfree(yy__os_bin1);
+            yk__sdsfree(yy__os_binary);
+            return t__5;
+        }
+        if (yy__os_is_windows())
+        {
+            yk__sds t__6 = yy__path_join(yk__sdsdup(yy__os_cur_path), yk__sdsdup(yy__os_bin2));
+            yk__sdsfree(yy__os_full_path);
+            yy__os_full_path = yk__sdsdup(t__6);
+            if (yy__path_exists(yk__sdsdup(yy__os_full_path)))
+            {
+                yk__sds t__7 = yy__os_full_path;
+                yy__array_del_str_array(yy__os_paths);
+                yk__sdsfree(t__6);
+                yk__sdsfree(t__4);
+                yk__sdsfree(yy__os_cur_path);
+                yk__sdsfree(yy__os_sep);
+                yk__sdsfree(yy__os_env);
+                yk__sdsfree(t__0);
+                yk__sdsfree(yy__os_bin3);
+                yk__sdsfree(yy__os_bin2);
+                yk__sdsfree(yy__os_bin1);
+                yk__sdsfree(yy__os_binary);
+                return t__7;
+            }
+            yk__sds t__8 = yy__path_join(yk__sdsdup(yy__os_cur_path), yk__sdsdup(yy__os_bin3));
+            yk__sdsfree(yy__os_full_path);
+            yy__os_full_path = yk__sdsdup(t__8);
+            if (yy__path_exists(yk__sdsdup(yy__os_full_path)))
+            {
+                yk__sds t__9 = yy__os_full_path;
+                yy__array_del_str_array(yy__os_paths);
+                yk__sdsfree(t__8);
+                yk__sdsfree(t__6);
+                yk__sdsfree(t__4);
+                yk__sdsfree(yy__os_cur_path);
+                yk__sdsfree(yy__os_sep);
+                yk__sdsfree(yy__os_env);
+                yk__sdsfree(t__0);
+                yk__sdsfree(yy__os_bin3);
+                yk__sdsfree(yy__os_bin2);
+                yk__sdsfree(yy__os_bin1);
+                yk__sdsfree(yy__os_binary);
+                return t__9;
+            }
+            yk__sdsfree(t__8);
+            yk__sdsfree(t__6);
+        }
+        yk__sdsfree(yy__os_full_path);
+        yk__sdsfree(t__4);
+        yk__sdsfree(yy__os_cur_path);
+    }
+    yk__sds t__10 = yy__os_cwd();
+    yk__sds t__11 = yy__path_join(yk__sdsdup(t__10), yk__sdsdup(yy__os_bin1));
+    yk__sds yy__os_special = yk__sdsdup(t__11);
+    if (yy__path_executable(yk__sdsdup(yy__os_special)))
+    {
+        yk__sds t__12 = yy__os_special;
+        yy__array_del_str_array(yy__os_paths);
+        yk__sdsfree(t__11);
+        yk__sdsfree(t__10);
+        yk__sdsfree(yy__os_sep);
+        yk__sdsfree(yy__os_env);
+        yk__sdsfree(t__0);
+        yk__sdsfree(yy__os_bin3);
+        yk__sdsfree(yy__os_bin2);
+        yk__sdsfree(yy__os_bin1);
+        yk__sdsfree(yy__os_binary);
+        return t__12;
+    }
+    if (yy__os_is_windows())
+    {
+        yk__sds t__13 = yy__os_cwd();
+        yk__sds t__14 = yy__path_join(yk__sdsdup(t__13), yk__sdsdup(yy__os_bin2));
+        yk__sdsfree(yy__os_special);
+        yy__os_special = yk__sdsdup(t__14);
+        if (yy__path_exists(yk__sdsdup(yy__os_special)))
+        {
+            yk__sds t__15 = yy__os_special;
+            yy__array_del_str_array(yy__os_paths);
+            yk__sdsfree(t__14);
+            yk__sdsfree(t__13);
+            yk__sdsfree(t__11);
+            yk__sdsfree(t__10);
+            yk__sdsfree(yy__os_sep);
+            yk__sdsfree(yy__os_env);
+            yk__sdsfree(t__0);
+            yk__sdsfree(yy__os_bin3);
+            yk__sdsfree(yy__os_bin2);
+            yk__sdsfree(yy__os_bin1);
+            yk__sdsfree(yy__os_binary);
+            return t__15;
+        }
+        yk__sds t__16 = yy__os_cwd();
+        yk__sds t__17 = yy__path_join(yk__sdsdup(t__16), yk__sdsdup(yy__os_bin3));
+        yk__sdsfree(yy__os_special);
+        yy__os_special = yk__sdsdup(t__17);
+        if (yy__path_exists(yk__sdsdup(yy__os_special)))
+        {
+            yk__sds t__18 = yy__os_special;
+            yy__array_del_str_array(yy__os_paths);
+            yk__sdsfree(t__17);
+            yk__sdsfree(t__16);
+            yk__sdsfree(t__14);
+            yk__sdsfree(t__13);
+            yk__sdsfree(t__11);
+            yk__sdsfree(t__10);
+            yk__sdsfree(yy__os_sep);
+            yk__sdsfree(yy__os_env);
+            yk__sdsfree(t__0);
+            yk__sdsfree(yy__os_bin3);
+            yk__sdsfree(yy__os_bin2);
+            yk__sdsfree(yy__os_bin1);
+            yk__sdsfree(yy__os_binary);
+            return t__18;
+        }
+        yk__sdsfree(t__17);
+        yk__sdsfree(t__16);
+        yk__sdsfree(t__14);
+        yk__sdsfree(t__13);
+    }
+    yk__sds t__19 = yy__os_exe_path();
+    yk__sds t__20 = yy__path_join(yk__sdsdup(t__19), yk__sdsdup(yy__os_bin1));
+    yk__sdsfree(yy__os_special);
+    yy__os_special = yk__sdsdup(t__20);
+    if (yy__path_executable(yk__sdsdup(yy__os_special)))
+    {
+        yk__sds t__21 = yy__os_special;
+        yy__array_del_str_array(yy__os_paths);
+        yk__sdsfree(t__20);
+        yk__sdsfree(t__19);
+        yk__sdsfree(t__11);
+        yk__sdsfree(t__10);
+        yk__sdsfree(yy__os_sep);
+        yk__sdsfree(yy__os_env);
+        yk__sdsfree(t__0);
+        yk__sdsfree(yy__os_bin3);
+        yk__sdsfree(yy__os_bin2);
+        yk__sdsfree(yy__os_bin1);
+        yk__sdsfree(yy__os_binary);
+        return t__21;
+    }
+    if (yy__os_is_windows())
+    {
+        yk__sds t__22 = yy__os_exe_path();
+        yk__sds t__23 = yy__path_join(yk__sdsdup(t__22), yk__sdsdup(yy__os_bin2));
+        yk__sdsfree(yy__os_special);
+        yy__os_special = yk__sdsdup(t__23);
+        if (yy__path_exists(yk__sdsdup(yy__os_special)))
+        {
+            yk__sds t__24 = yy__os_special;
+            yy__array_del_str_array(yy__os_paths);
+            yk__sdsfree(t__23);
+            yk__sdsfree(t__22);
+            yk__sdsfree(t__20);
+            yk__sdsfree(t__19);
+            yk__sdsfree(t__11);
+            yk__sdsfree(t__10);
+            yk__sdsfree(yy__os_sep);
+            yk__sdsfree(yy__os_env);
+            yk__sdsfree(t__0);
+            yk__sdsfree(yy__os_bin3);
+            yk__sdsfree(yy__os_bin2);
+            yk__sdsfree(yy__os_bin1);
+            yk__sdsfree(yy__os_binary);
+            return t__24;
+        }
+        yk__sds t__25 = yy__os_exe_path();
+        yk__sds t__26 = yy__path_join(yk__sdsdup(t__25), yk__sdsdup(yy__os_bin3));
+        yk__sdsfree(yy__os_special);
+        yy__os_special = yk__sdsdup(t__26);
+        if (yy__path_exists(yk__sdsdup(yy__os_special)))
+        {
+            yk__sds t__27 = yy__os_special;
+            yy__array_del_str_array(yy__os_paths);
+            yk__sdsfree(t__26);
+            yk__sdsfree(t__25);
+            yk__sdsfree(t__23);
+            yk__sdsfree(t__22);
+            yk__sdsfree(t__20);
+            yk__sdsfree(t__19);
+            yk__sdsfree(t__11);
+            yk__sdsfree(t__10);
+            yk__sdsfree(yy__os_sep);
+            yk__sdsfree(yy__os_env);
+            yk__sdsfree(t__0);
+            yk__sdsfree(yy__os_bin3);
+            yk__sdsfree(yy__os_bin2);
+            yk__sdsfree(yy__os_bin1);
+            yk__sdsfree(yy__os_binary);
+            return t__27;
+        }
+        yk__sdsfree(t__26);
+        yk__sdsfree(t__25);
+        yk__sdsfree(t__23);
+        yk__sdsfree(t__22);
+    }
+    yy__array_del_str_array(yy__os_paths);
+    yk__sdsfree(t__20);
+    yk__sdsfree(t__19);
+    yk__sdsfree(yy__os_special);
+    yk__sdsfree(t__11);
+    yk__sdsfree(t__10);
+    yk__sdsfree(yy__os_sep);
+    yk__sdsfree(yy__os_env);
+    yk__sdsfree(t__0);
+    yk__sdsfree(yy__os_bin3);
+    yk__sdsfree(yy__os_bin2);
+    yk__sdsfree(yy__os_bin1);
+    yk__sdsfree(yy__os_binary);
+    return yk__sdsnewlen("", 0);
 }
 yk__sds yy__io_readfile(yk__sds nn__fname) { return yk__io_readfile(nn__fname); }
 int32_t yy__console_getch() 
@@ -234,6 +610,17 @@ int32_t yy__main()
 {
     yy__c_Size yy__mw = yy__webui_new_window();
     yk__printlnstr("created window");
+    yk__sds t__13 = yy__os_which(yk__sdsnewlen("yaksha", 6));
+    yk__sds yy__yaksha = yk__sdsdup(t__13);
+    if (yk__cmp_sds_lit(yy__yaksha, "", 0) == 0)
+    {
+        yk__printlnstr("yaksha not found");
+        yk__sdsfree(yy__yaksha);
+        yk__sdsfree(t__13);
+        return INT32_C(1);
+    }
+    yk__sds t__14 = yk__concat_lit_sds("yaksha binary found at: ", 24, yy__yaksha);
+    yk__printlnstr(t__14);
     yy__webui_set_root_folder(yy__mw, "frontend");
     yy__webui_show(yy__mw, "index.html");
     yy__webui_bind(yy__mw, "listfiles", yy__list_files);
@@ -246,6 +633,9 @@ int32_t yy__main()
     yk__printlnstr("cleaned");
     yk__printlnstr("press any key to exit");
     yy__console_getch();
+    yk__sdsfree(t__14);
+    yk__sdsfree(yy__yaksha);
+    yk__sdsfree(t__13);
     return INT32_C(0);
 }
 #if defined(YK__MINIMAL_MAIN)

@@ -37,7 +37,7 @@ button:active {
 
 #filebrowser {
     font-size: 0.6em;
-    height: calc(100% - 80px);
+    height: calc(100% - 6px);
     width: calc(100% - 4px);
     overflow-y: scroll;
 
@@ -178,6 +178,10 @@ body, html, .main-container {
 
 .pane {
     display: none; /* will appear when layout inits */
+}
+
+.toolbar {
+    padding: 5px;
 }
 
 /* ============= */
