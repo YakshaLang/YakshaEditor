@@ -164,13 +164,6 @@ function newfile() {
     });
 }
 
-function newfolder() {
-    save_then_continue(function () {
-        webui.call('newfolder').then(function (data) {
-
-        });
-    });
-}
 
 $(document).ready(function () {
     $('#container').layout();

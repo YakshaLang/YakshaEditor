@@ -3,6 +3,7 @@
 // --forward declarations-- 
 #define yy__dtraverse_DT_REG (DT_REG)
 #define yy__dtraverse_DT_DIR (DT_DIR)
+#define yy__dialogs_beep tinyfd_beep
 #define yy__dialogs_input_box tinyfd_inputBox
 #define yy__dialogs_select_folder_dialog tinyfd_selectFolderDialog
 struct yy__dtraverse_Entry;
@@ -721,8 +722,16 @@ int32_t yy__main()
     yk__printlnstr("created window");
     yk__sds t__19 = yy__os_which(yk__sdsnewlen("yaksha", 6));
     yk__sds yy__yaksha = yk__sdsdup(t__19);
-    yk__sds t__20 = yk__concat_lit_sds("yaksha binary found at: ", 24, yy__yaksha);
-    yk__printlnstr(t__20);
+    if (yk__cmp_sds_lit(yy__yaksha, "", 0) == 0)
+    {
+        yy__dialogs_beep();
+    }
+    else
+    {
+        yk__sds t__20 = yk__concat_lit_sds("yaksha binary found at: ", 24, yy__yaksha);
+        yk__printlnstr(t__20);
+        yk__sdsfree(t__20);
+    }
     yy__webui_set_root_folder(yy__mw, "frontend");
     yy__webui_show(yy__mw, "index.html");
     yy__webui_bind(yy__mw, "listfiles", yy__list_files);
@@ -739,7 +748,6 @@ int32_t yy__main()
     yk__printlnstr("cleaned");
     yk__printlnstr("press any key to exit");
     yy__console_getch();
-    yk__sdsfree(t__20);
     yk__sdsfree(yy__yaksha);
     yk__sdsfree(t__19);
     return INT32_C(0);

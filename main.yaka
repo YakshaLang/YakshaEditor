@@ -158,11 +158,10 @@ def main() -> int:
     mw = w.new_window()
     println("created window")
     yaksha = os.which("yaksha")
-#    if yaksha == "":
-#        println("yaksha not found")
-#        dialogs.beep()
-#        return 1
-    println("yaksha binary found at: " + yaksha)
+    if yaksha == "":
+        dialogs.beep()
+    else:
+        println("yaksha binary found at: " + yaksha)
 
     w.set_root_folder(mw, c.cstr!{"frontend"})
     # w.bind(mw, "__close-btn", on_close)
