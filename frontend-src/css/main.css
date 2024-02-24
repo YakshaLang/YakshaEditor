@@ -184,6 +184,15 @@ body, html, .main-container {
     padding: 5px;
 }
 
+.output {
+    padding: 5px;
+    min-height: 48px;
+}
+
+.dirty-file {
+    color: #f85555;
+}
+
 /* ============= */
 /* https://loading.io/css/ */
 .lds-grid {

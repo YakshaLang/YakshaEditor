@@ -11,4 +11,5 @@
 #include "argparse.h"
 #include "tinycthread.h"
 #include "yk__cpu.h"
+#include "tinyfiledialogs.h"
 #include "yaksha_editor.c"

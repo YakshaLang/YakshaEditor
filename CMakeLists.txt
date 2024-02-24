@@ -28,13 +28,13 @@ add_custom_target(compile_yaksha_code DEPENDS ${yaksha_editor}
         COMMENT "Checking if re-compilation is required")
 # --------------------------------------------------------------------------------------------------
 # Compile YakshaEditor
-add_executable(YakshaEditor ${YAKSHA_RUNTIME_FILES} 3rd/webui/src/civetweb/civetweb.c 3rd/webui/src/webui.c main.c)
+add_executable(YakshaEditor ${YAKSHA_RUNTIME_FILES} 3rd/webui/src/civetweb/civetweb.c 3rd/webui/src/webui.c 3rd/tinyfiledialogs/tinyfiledialogs.c main.c)
 IF (WIN32)
-    include_directories(3rd/dirent/include 3rd/webui/include ${YK_RT_PATH})
+    include_directories(3rd/dirent/include 3rd/webui/include 3rd/tinyfiledialogs ${YK_RT_PATH})
     target_link_libraries(YakshaEditor ws2_32 user32)
     target_compile_definitions(YakshaEditor PUBLIC MUST_IMPLEMENT_CLOCK_GETTIME)
 ELSE()
-    include_directories(3rd/webui/include ${YK_RT_PATH})
+    include_directories(3rd/webui/include 3rd/tinyfiledialogs ${YK_RT_PATH})
     target_link_libraries(YakshaEditor m)
 ENDIF()
 add_dependencies(YakshaEditor compile_yaksha_code)

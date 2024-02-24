@@ -32,24 +32,24 @@
     <div class="pane ui-layout-south">
         <div id="output" class="output">
             <div id="output-header">
-                <button title="Clear output" onclick="clearOutput()"><span class='codicon codicon-clear-all'></span></button>
+                <button title="Clear output" onclick=""><span class='codicon codicon-clear-all'></span></button>
             </div>
             <div id="output-content"></div>
         </div>
     </div>
     <div class="pane ui-layout-north">
         <div id="toolbar" class="toolbar">
-            <button title="Open a file to edit" onclick=""><span class='codicon codicon-folder-opened'></span></button>
-            <button title="Save file" onclick=""><span class='codicon codicon-save'></span></button>
+            <button title="Open folder" onclick="open_folder()"><span class='codicon codicon-folder-opened'></span></button>
+            <button title="Save as file" onclick=""><span class='codicon codicon-save-as'></span></button>
             <button title="Run" onclick=""><span class='codicon codicon-play'></span></button>
             <button title="Refresh files" onclick="listfiles()"><span class='codicon codicon-refresh'></span></button>
-            <button title="Explore" onclick=""><span class='codicon codicon-file-symlink-directory'></span></button>
+            <button title="Explore" onclick="explore()"><span class='codicon codicon-file-symlink-directory'></span></button>
             <button title="Add a new file" onclick=""><span class='codicon codicon-new-file'></span></button>
             <button title="Add a new folder" onclick=""><span class='codicon codicon-new-folder'></span></button>
         </div>
     </div>
 </div>
-<!-- ========= MAIN CODE ============= !-->
+<!-- ========= MAIN CODE ============= -->
 <script src="/webui.js"></script>
 <script src="/main.min.js"></script>
 </body>

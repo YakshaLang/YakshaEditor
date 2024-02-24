@@ -3,6 +3,7 @@
 // --forward declarations-- 
 #define yy__dtraverse_DT_REG (DT_REG)
 #define yy__dtraverse_DT_DIR (DT_DIR)
+#define yy__dialogs_select_folder_dialog tinyfd_selectFolderDialog
 struct yy__dtraverse_Entry;
 #define yy__dtraverse_DirEntryObject struct dirent *
 #define yy__dtraverse_DirObject DIR *
@@ -11,8 +12,9 @@ struct yy__dtraverse_Entry;
 #define yy__dtraverse_closedir closedir
 #define yy__path_exists yk__exists
 #define yy__path_executable yk__executable
-#define yy__array_del_str_array yk__delsdsarray
 #define yy__os_chdir yk__change_current_dir_path
+#define yy__os_ProcessResult struct yk__process_result*
+#define yy__array_del_str_array yk__delsdsarray
 #define yy__refs_unwrap yk__bstr_get_reference
 #define yy__refs_wrap_cstr yk__bstr_c
 #define yy__c_Size size_t
@@ -26,6 +28,7 @@ struct yy__dtraverse_Entry;
 #define yy__webui_wait webui_wait
 #define yy__webui_set_root_folder webui_set_root_folder
 #define yy__webui_clean webui_clean
+#define yy__webui_get_string_at webui_get_string_at
 #define yy__webui_get_string webui_get_string
 #define yy__webui_return_string webui_return_string
 struct yy__dtraverse_Entry** yy__dtraverse_listdir(struct yk__bstr);
@@ -35,10 +38,14 @@ yk__sds yy__path_join(yk__sds, yk__sds);
 yk__sds* yy__strings_split(yk__sds, yk__sds);
 yk__sds yy__os_exe_path();
 yk__sds yy__os_cwd();
+yy__os_ProcessResult yy__os_run(yk__sds*);
+void yy__os_del_process_result(yy__os_ProcessResult);
 bool yy__os_is_windows();
+bool yy__os_is_macos();
 yk__sds yy__os_getenv(yk__sds);
 yk__sds yy__os_which(yk__sds);
 yk__sds yy__io_readfile(yk__sds);
+bool yy__io_writefile(yk__sds, yk__sds);
 int32_t yy__console_getch();
 struct yk__bstr yy__refs_wrap_cstr_z(yy__c_CStr);
 yk__sds yy__append_char(struct yk__bstr, int32_t);
@@ -46,6 +53,9 @@ yk__sds yy__escape_js_string(struct yk__bstr);
 yk__sds yy__file_entries_to_json(struct yy__dtraverse_Entry**);
 void yy__list_files(yy__webui_Event);
 void yy__click_file(yy__webui_Event);
+void yy__save_file(yy__webui_Event);
+void yy__show_open_folder_dialog(yy__webui_Event);
+void yy__explore(yy__webui_Event);
 void yy__change_folder(yy__webui_Event);
 int32_t yy__main();
 // --structs-- 
@@ -179,6 +189,8 @@ yk__sds yy__os_cwd()
     free(path);
     return value;
 }
+yy__os_ProcessResult yy__os_run(yk__sds* nn__args) { return yk__run(nn__args); }
+void yy__os_del_process_result(yy__os_ProcessResult nn__pr) { yk__free_process_result(nn__pr); }
 bool yy__os_is_windows() 
 {
     bool win = false;
@@ -186,6 +198,14 @@ bool yy__os_is_windows()
     win = true;
     #endif
     return win;
+}
+bool yy__os_is_macos() 
+{
+    bool mach_os = false;
+    #if defined(__APPLE__) && defined(__MACH__)
+    mach_os = true;
+    #endif
+    return mach_os;
 }
 yk__sds yy__os_getenv(yk__sds nn__name) { return yk__getenv(nn__name); }
 yk__sds yy__os_which(yk__sds yy__os_binary) 
@@ -449,6 +469,7 @@ yk__sds yy__os_which(yk__sds yy__os_binary)
     return yk__sdsnewlen("", 0);
 }
 yk__sds yy__io_readfile(yk__sds nn__fname) { return yk__io_readfile(nn__fname); }
+bool yy__io_writefile(yk__sds nn__fname, yk__sds nn__data) { return yk__io_writefile(nn__fname, nn__data); }
 int32_t yy__console_getch() 
 {
     return yk__getch();
@@ -591,6 +612,98 @@ void yy__click_file(yy__webui_Event yy__event)
     yk__sdsfree(t__12);
     return;
 }
+void yy__save_file(yy__webui_Event yy__event) 
+{
+    yy__c_CStr yy__path_cstr = yy__webui_get_string_at(yy__event, ((yy__c_Size)INT32_C(0)));
+    struct yk__bstr yy__path = yy__refs_wrap_cstr_z(yy__path_cstr);
+    yy__c_CStr yy__content_cstr = yy__webui_get_string_at(yy__event, ((yy__c_Size)INT32_C(1)));
+    struct yk__bstr yy__content = yy__refs_wrap_cstr_z(yy__content_cstr);
+    bool yy__success = yy__io_writefile(yk__bstr_copy_to_sds(yy__path), yk__bstr_copy_to_sds(yy__content));
+    yy__webui_return_string(yy__event, (yy__success ? "OK" : "Failed to save file"));
+    return;
+}
+void yy__show_open_folder_dialog(yy__webui_Event yy__event) 
+{
+    yk__sds t__13 = yy__os_cwd();
+    yk__sds yy__path = yk__sdsdup(t__13);
+    yy__c_CStr yy__selected = yy__dialogs_select_folder_dialog("YakshaEditor", ((yy__c_CStr)yy__path));
+    if (yy__selected == NULL)
+    {
+        yy__webui_return_string(yy__event, "");
+    }
+    else
+    {
+        yy__webui_return_string(yy__event, yy__selected);
+    }
+    yk__sdsfree(yy__path);
+    yk__sdsfree(t__13);
+    return;
+}
+void yy__explore(yy__webui_Event yy__event) 
+{
+    yk__sds t__14 = yy__os_cwd();
+    yk__sds yy__path = yk__sdsdup(t__14);
+yk__sds yy__program = yk__sdsempty();
+    if (yy__os_is_windows())
+    {
+        yk__sds t__15 = yy__os_which(yk__sdsnewlen("explorer", 8));
+        yk__sdsfree(yy__program);
+        yy__program = yk__sdsdup(t__15);
+        yk__sdsfree(t__15);
+    }
+    else
+    {
+        if (yy__os_is_macos())
+        {
+            yk__sds t__16 = yy__os_which(yk__sdsnewlen("open", 4));
+            yk__sdsfree(yy__program);
+            yy__program = yk__sdsdup(t__16);
+            yk__sdsfree(t__16);
+        }
+        else
+        {
+            yk__sds t__17 = yy__os_which(yk__sdsnewlen("xdg-open", 8));
+            yk__sdsfree(yy__program);
+            yy__program = yk__sdsdup(t__17);
+            yk__sdsfree(t__17);
+        }
+    }
+    if (yk__cmp_sds_lit(yy__program, "", 0) == 0)
+    {
+        yy__webui_return_string(yy__event, "Failed to locate file explorer");
+        yk__sdsfree(yy__program);
+        yk__sdsfree(yy__path);
+        yk__sdsfree(t__14);
+        return;
+    }
+    yk__sds* t__18 = NULL;
+    yk__arrsetcap(t__18, 2);
+    yk__arrput(t__18, yk__sdsdup(yy__program));
+    yk__arrput(t__18, yk__sdsdup(yy__path));
+    yk__sds* yy__args = t__18;
+    yk__sds t__19 = yk__concat_lit_sds("running: ", 9, yy__program);
+    yk__sds t__20 = yk__concat_sds_lit(t__19, " ", 1);
+    yk__sds t__21 = yk__sdscatsds(yk__sdsdup(t__20), yy__path);
+    yk__printlnstr(t__21);
+    yy__os_ProcessResult yy__result = yy__os_run(yy__args);
+    if (!(yy__result->ok))
+    {
+        yy__webui_return_string(yy__event, "Failed to open file explorer");
+    }
+    else
+    {
+        yy__webui_return_string(yy__event, "OK");
+    }
+    yy__os_del_process_result(yy__result);
+    yy__array_del_str_array(yy__args);
+    yk__sdsfree(t__21);
+    yk__sdsfree(t__20);
+    yk__sdsfree(t__19);
+    yk__sdsfree(yy__program);
+    yk__sdsfree(yy__path);
+    yk__sdsfree(t__14);
+    return;
+}
 void yy__change_folder(yy__webui_Event yy__event) 
 {
     yy__c_CStr yy__path_cstr = yy__webui_get_string(yy__event);
@@ -610,22 +723,18 @@ int32_t yy__main()
 {
     yy__c_Size yy__mw = yy__webui_new_window();
     yk__printlnstr("created window");
-    yk__sds t__13 = yy__os_which(yk__sdsnewlen("yaksha", 6));
-    yk__sds yy__yaksha = yk__sdsdup(t__13);
-    if (yk__cmp_sds_lit(yy__yaksha, "", 0) == 0)
-    {
-        yk__printlnstr("yaksha not found");
-        yk__sdsfree(yy__yaksha);
-        yk__sdsfree(t__13);
-        return INT32_C(1);
-    }
-    yk__sds t__14 = yk__concat_lit_sds("yaksha binary found at: ", 24, yy__yaksha);
-    yk__printlnstr(t__14);
+    yk__sds t__22 = yy__os_which(yk__sdsnewlen("yaksha", 6));
+    yk__sds yy__yaksha = yk__sdsdup(t__22);
+    yk__sds t__23 = yk__concat_lit_sds("yaksha binary found at: ", 24, yy__yaksha);
+    yk__printlnstr(t__23);
     yy__webui_set_root_folder(yy__mw, "frontend");
     yy__webui_show(yy__mw, "index.html");
     yy__webui_bind(yy__mw, "listfiles", yy__list_files);
     yy__webui_bind(yy__mw, "clickfile", yy__click_file);
+    yy__webui_bind(yy__mw, "savefile", yy__save_file);
     yy__webui_bind(yy__mw, "cd", yy__change_folder);
+    yy__webui_bind(yy__mw, "openfolder", yy__show_open_folder_dialog);
+    yy__webui_bind(yy__mw, "explore", yy__explore);
     yk__printlnstr("waiting ... ");
     yy__webui_wait();
     yk__printlnstr("done");
@@ -633,9 +742,9 @@ int32_t yy__main()
     yk__printlnstr("cleaned");
     yk__printlnstr("press any key to exit");
     yy__console_getch();
-    yk__sdsfree(t__14);
+    yk__sdsfree(t__23);
     yk__sdsfree(yy__yaksha);
-    yk__sdsfree(t__13);
+    yk__sdsfree(t__22);
     return INT32_C(0);
 }
 #if defined(YK__MINIMAL_MAIN)

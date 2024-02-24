@@ -1,10 +1,12 @@
 import webui as w
 import libs.c
 import libs.strings.refs as r
+import libs.strings.array as sarr
 import libs.console
 import libs.io
 import libs.os
 import dtraverse as dt
+import dialogs
 
 # TODO move this to numbers
 macros! {
@@ -95,15 +97,43 @@ def click_file(event: w.Event) -> None:
     w.return_string(event, cast("c.CStr", content))
 
 def save_file(event: w.Event) -> None:
-    path_cstr: c.CStr = w.get_string(event)
+    path_cstr: c.CStr = w.get_string_at(event, cast("c.Size", 0))
     path: sr = r.wrap_cstr_z(path_cstr)
-    content_cstr: c.CStr = w.get_string(event)
+    content_cstr: c.CStr = w.get_string_at(event, cast("c.Size", 1))
     content: sr = r.wrap_cstr_z(content_cstr)
-    io.writefile(path, content)
-    w.return_string(event, c.cstr!{"OK"})
+    success: bool = io.writefile(path, content)
+    w.return_string(event, iif(success, c.cstr!{"OK"}, c.cstr!{"Failed to save file"}))
 
 def show_open_folder_dialog(event: w.Event) -> None:
-    pass
+    path = os.cwd()
+    selected: c.CStr = dialogs.select_folder_dialog(c.cstr!{"YakshaEditor"}, cast("c.CStr",path))
+    if selected == None:
+        w.return_string(event, c.cstr!{""})
+    else:
+        w.return_string(event, selected)
+
+def explore(event: w.Event) -> None:
+    path = os.cwd()
+    program: str
+    if os.is_windows():
+        program = os.which("explorer")
+    elif os.is_macos():
+        program = os.which("open")
+    else:
+        program = os.which("xdg-open")
+
+    if program == "":
+        w.return_string(event, c.cstr!{"Failed to locate file explorer"})
+        return
+    args = array("str", program, path)
+    println("running: " + program + " " + path)
+    result: os.ProcessResult = os.run(args)
+    if not result.ok:
+        w.return_string(event, c.cstr!{"Failed to open file explorer"})
+    else:
+        w.return_string(event, c.cstr!{"OK"})
+    os.del_process_result(result)
+    sarr.del_str_array(args)
 
 def show_save_file_dialog(event: w.Event) -> None:
     pass
@@ -122,10 +152,12 @@ def main() -> int:
     mw = w.new_window()
     println("created window")
     yaksha = os.which("yaksha")
-    if yaksha == "":
-        println("yaksha not found")
-        return 1
+#    if yaksha == "":
+#        println("yaksha not found")
+#        dialogs.beep()
+#        return 1
     println("yaksha binary found at: " + yaksha)
+
     w.set_root_folder(mw, c.cstr!{"frontend"})
     # w.bind(mw, "__close-btn", on_close)
     w.show(mw, c.cstr!{"index.html"})
@@ -133,7 +165,10 @@ def main() -> int:
     # bind events
     w.bind(mw, c.cstr!{"listfiles"}, list_files)
     w.bind(mw, c.cstr!{"clickfile"}, click_file)
+    w.bind(mw, c.cstr!{"savefile"}, save_file)
     w.bind(mw, c.cstr!{"cd"}, change_folder)
+    w.bind(mw, c.cstr!{"openfolder"}, show_open_folder_dialog)
+    w.bind(mw, c.cstr!{"explore"}, explore)
 
     # exit
     println("waiting ... ")

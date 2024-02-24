@@ -1,4 +1,6 @@
+const NEVER_CHANGED_VERSION_INDICATOR = "---";
 let STATE = {
+    file_list: [],
     listfiles_init: false,
     listfiles_err: 0,
     default_retries: 3,
@@ -6,12 +8,16 @@ let STATE = {
     current_file: "",
     current_file_type: "",
     current_file_dirty: false,
-    last_saved_version_id: "---",
+    last_saved_version_id: NEVER_CHANGED_VERSION_INDICATOR,
+    last_edit_version_id: NEVER_CHANGED_VERSION_INDICATOR,
 };
 
-// dirty state --> https://github.com/Microsoft/monaco-editor/issues/353
+function is_dirty() {
+    return STATE.last_saved_version_id !== STATE.last_edit_version_id;
+}
 
-function update_file_list(data) {
+function update_file_list() {
+    const data = STATE.file_list;
     let html = "";
     const files = JSON.parse(data).sort((a, b) => {
         if (a.type === "d" && b.type === "f") {
@@ -31,6 +37,7 @@ function update_file_list(data) {
         const fType = (f.type === "d" ? "folder" : "file");
         const htmlClass = fType
             + (f.name === STATE.current_file ? " current-file" : "")
+            + (is_dirty() && f.name === STATE.current_file ? " dirty-file" : "")
             + (f.name === ".." ? " red-folder" : "");
         const icon = fType === "folder" ? FOLDER : FILE;
         html += "<div onclick='clickfile(" + quoteJsThenEscapeHtml(f.name)
@@ -43,7 +50,8 @@ function update_file_list(data) {
 
 function listfiles() {
     webui.call('listfiles').then(function (data) {
-        update_file_list(data);
+        STATE.file_list = data;
+        update_file_list();
         STATE.listfiles_init = true;
         STATE.listfiles_err = 0;
         console.log("file list completed");
@@ -66,55 +74,6 @@ function set_editor_value(data) {
     editor.focus();
 }
 
-const EXTENSION_TO_LANGUAGE = {
-    "yaka": "yaksha",
-    "l": "yaksha", // TODO yaksha lisp?
-    "json": "typescript",
-    "js": "typescript",
-    "html": "html",
-    "css": "css",
-    "md": "markdown",
-    "txt": "plaintext",
-    "": "plaintext",
-    "c": "cpp",
-    "cpp": "cpp",
-    "h": "cpp",
-    "hpp": "cpp",
-    "cc": "cpp",
-    "hh": "cpp",
-    "cxx": "cpp",
-    "hxx": "cpp",
-    "py": "python",
-    "java": "java",
-    "sh": "shell",
-    "yaml": "yaml",
-    "yml": "yaml",
-    "xml": "xml",
-    "sql": "sql",
-    "rs": "rust",
-    "ts": "typescript",
-    "tsx": "typescript",
-    "jsx": "typescript",
-    "rst": "restructuredtext",
-    "mdx": "markdown",
-    "mjs": "typescript",
-    "cmd": "shell",
-    "bat": "shell",
-    "ps1": "powershell",
-    "lua": "lua",
-};
-
-const FILENAME_TO_LANGUAGE = {
-    "Makefile": "shell",
-    "Dockerfile": "shell",
-    "CMakeLists.txt": "yaksha",
-    ".gitignore": "yaksha",
-    ".clang-format": "yaksha",
-    ".gitattributes": "yaksha",
-    ".gitmodules": "yaksha",
-    "requirements.txt": "python",
-}
-
 function set_editor_language(filename) {
     const ext = extension(filename);
     let lang = FILENAME_TO_LANGUAGE[filename] || EXTENSION_TO_LANGUAGE[ext] ||
@@ -123,24 +82,78 @@ function set_editor_language(filename) {
     console.log("set language", lang);
 }
 
-function clickfile(name, type) {
-    if (type === "folder") {
-        webui.call('cd', name).then(function (data) {
-            console.log("cd", name, data);
-            if (data === "OK") {
-                listfiles();
+function save_then_continue(callback) {
+    // If this is a new file which we haven't saved yet, we should
+    //  prompt the user to save it first.
+    if (STATE.current_file === "" && is_dirty()) {
+        if (!confirm("You have unsaved changes. Do you want to discard" +
+            " these changes and continue?")) {
+            return;
+        }
+    }
+    // Nothing to save
+    if (!is_dirty()) {
+        if (callback) {
+            callback();
+        }
+        return;
+    }
+    // We can save the file
+    const data = editor.getValue();
+    webui.call('savefile', STATE.current_file, data).then(function (data) {
+        STATE.last_saved_version_id = window.editor.getModel().getVersionId();
+        if (callback) {
+            callback();
+        }
+    });
+}
+
+function explore() {
+    webui.call('explore').then(function (data) {
+        console.log("explore", data);
+    });
+}
+
+function open_folder() {
+    save_then_continue(function () {
+        webui.call('openfolder').then(function (data) {
+            if (data) {
+                const path = data;
+                webui.call('cd', path).then(function (data) {
+                    console.log("cd", path, data);
+                    if (data === "OK") {
+                        listfiles();
+                    }
+                });
             }
         });
-    } else {
-        webui.call('clickfile', name).then(function (data) {
-            set_editor_value(data);
-            STATE.current_file = name;
-            setTimeout(function () {
-                listfiles();
-                set_editor_language(name);
-            }, 0);
-        });
-    }
+    });
+}
+
+function clickfile(name, type) {
+    save_then_continue(function () {
+        if (type === "folder") {
+            webui.call('cd', name).then(function (data) {
+                console.log("cd", name, data);
+                if (data === "OK") {
+                    listfiles();
+                }
+            });
+        } else {
+            webui.call('clickfile', name).then(function (data) {
+                set_editor_value(data);
+                STATE.current_file = name;
+                STATE.last_saved_version_id =
+                    window.editor.getModel().getVersionId();
+                STATE.last_edit_version_id =
+                    window.editor.getModel().getVersionId();
+                setTimeout(function () {
+                    listfiles();
+                    set_editor_language(name);
+                }, 0);
+            });
+        }
+    });
 }
 
 $(document).ready(function () {
@@ -194,5 +207,13 @@ $(document).ready(function () {
             automaticLayout: true,
             bracketPairColorization: {enabled: true},
         });
+    window.rerender_file_list = debouncer(update_file_list, 100);
+    // When we change the model content, update the last edit version id!
+    window.editor.onDidChangeModelContent(function (e) {
+        STATE.last_edit_version_id = window.editor.getModel().getVersionId();
+        window.rerender_file_list();
+    });
+    STATE.last_saved_version_id = window.editor.getModel().getVersionId();
+    STATE.last_edit_version_id = window.editor.getModel().getVersionId();
     $('#loading-animation').remove();
 });

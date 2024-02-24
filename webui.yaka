@@ -47,7 +47,6 @@ def new_window_id(window_number: c.Size) -> c.Size:
 def get_new_window_id() -> c.Size:
     pass
 
-
 # WEBUI_EXPORT size_t webui_bind(size_t window, const char* element, void (*func)(webui_event_t* e));
 @nativedefine("webui_bind")
 def bind(window: c.Size, element: c.CStr, func: Function[In[Event],Out]) -> c.Size:
@@ -148,7 +147,6 @@ def send_raw(window: c.Size, function: c.CStr, raw: AnyPtr, size: c.Size) -> Non
 def set_hide(window: c.Size, status: bool) -> None:
     pass
 
-
 # WEBUI_EXPORT void webui_set_size(size_t window, unsigned int width, unsigned int height);
 @nativedefine("webui_set_size")
 def set_size(window: c.Size, width: c.UInt, height: c.UInt) -> None:
@@ -179,12 +177,10 @@ def get_url(window: c.Size) -> c.CStr:
 def set_public(window: c.Size, status: bool) -> None:
     pass
 
-
 # WEBUI_EXPORT void webui_navigate(size_t window, const char* url);
 @nativedefine("webui_navigate")
 def navigate(window: c.Size, url: c.CStr) -> None:
     pass
-
 
 # WEBUI_EXPORT void webui_clean();
 @nativedefine("webui_clean")

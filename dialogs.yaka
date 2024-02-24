@@ -1,0 +1,70 @@
+import libs.c
+
+@nativedefine("tinyfd_beep")
+def beep() -> None:
+    # do a beep
+    pass
+
+
+@nativedefine("tinyfd_notifyPopup")
+def notify_popup(title: c.CStr, message: c.CStr, icon_type: c.CStr) -> int:
+    # show a notification popup
+    # icon_type: "info" "warning" "error"
+    pass
+
+
+@nativedefine("tinyfd_messageBox")
+def message_box(title: c.CStr, message: c.CStr, dialog_type: c.CStr, icon_type: c.CStr, default_button: int) -> int:
+    # show a message box
+    # dialog_type: "ok" "okcancel" "yesno" "yesnocancel"
+    # icon_type: "info" "warning" "error" "question"
+    # default_button: 0 for cancel/no , 1 for ok/yes , 2 for no in yesnocancel
+    # returns 0 for cancel/no , 1 for ok/yes , 2 for no in yesnocancel
+    pass
+
+
+@nativedefine("tinyfd_inputBox")
+def input_box(title: c.CStr, message: c.CStr, default_input: c.CStr) -> c.CStr:
+    # show an input box
+    # default_input - string to show in the input box
+    # returns None on cancel
+    pass
+
+
+@nativedefine("tinyfd_saveFileDialog")
+def save_file_dialog(title: c.CStr, default_path_and_or_file: c.CStr, num_of_filter_patterns: int, filter_patterns: Array[c.CStr], single_filter_description: c.CStr) -> c.CStr:
+    # show a save file dialog
+    # num_of_filter_patterns - number of filter patterns
+    # filter_patterns - array of filter patterns array("c.CStr", c.cstr!{"*.txt"})
+    # single_filter_description - description of the filter ex. "text files"
+    # returns None on cancel
+    pass
+
+
+@nativedefine("tinyfd_openFileDialog")
+def open_file_dialog(title: c.CStr, default_path_and_or_file: c.CStr, num_of_filter_patterns: int, filter_patterns: c.CStr, single_filter_description: c.CStr, allow_multiple_selects: int) -> c.CStr:
+    # show an open file dialog
+    # num_of_filter_patterns - number of filter patterns
+    # filter_patterns - array of filter patterns array("c.CStr", c.cstr!{"*.txt"})
+    # single_filter_description - description of the filter ex. "text files"
+    # allow_multiple_selects - 0 or 1
+    # returns None on cancel or a string with the selected file (files are separated by "|")
+    pass
+
+
+@nativedefine("tinyfd_selectFolderDialog")
+def select_folder_dialog(title: c.CStr, default_path: c.CStr) -> c.CStr:
+    # pick a folder
+    # returns None on cancel
+    pass
+
+
+@nativedefine("tinyfd_colorChooser")
+def color_chooser(title: c.CStr, default_hex_rgb: c.CStr, default_rgb: FixedArr[Const[u8], 3], result_rgb: FixedArr[u8, 3]) -> c.CStr:
+    # pick a colour
+    # default_hex_rgb - NULL or "" or "#FF0000"
+    # default_rgb - is used only if default_hex_rgb is None
+    # result_rgb - the result
+    # returns None on cancel or a string with the selected color in hex (ex. "#FF0000"), result_rgb also contains the result
+    pass
+
