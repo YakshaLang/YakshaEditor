@@ -156,6 +156,22 @@ function clickfile(name, type) {
     });
 }
 
+function newfile() {
+    save_then_continue(function () {
+        webui.call('newfile').then(function (data) {
+            listfiles();
+        });
+    });
+}
+
+function newfolder() {
+    save_then_continue(function () {
+        webui.call('newfolder').then(function (data) {
+
+        });
+    });
+}
+
 $(document).ready(function () {
     $('#container').layout();
     $(document).bind('keydown', function (e) {

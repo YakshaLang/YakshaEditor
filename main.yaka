@@ -125,15 +125,21 @@ def explore(event: w.Event) -> None:
     if program == "":
         w.return_string(event, c.cstr!{"Failed to locate file explorer"})
         return
-    args = array("str", program, path)
-    println("running: " + program + " " + path)
-    result: os.ProcessResult = os.run(args)
-    if not result.ok:
-        w.return_string(event, c.cstr!{"Failed to open file explorer"})
-    else:
-        w.return_string(event, c.cstr!{"OK"})
-    os.del_process_result(result)
-    sarr.del_str_array(args)
+    program += " \""
+    program += path
+    program += "\""
+    println("running: " + program)
+    c.system(cast("c.CStr", program))
+
+def create_new_file(event: w.Event) -> None:
+    default_filename: c.CStr = c.cstr!{"newfile.yaka"}
+    filename = dialogs.input_box(c.cstr!{"YakshaEditor"}, c.cstr!{"Enter file name"}, default_filename)
+    if filename == None:
+        w.return_string(event, c.cstr!{"Cancelled"})
+        return
+    path: sr = r.wrap_cstr_z(filename)
+    success: bool = io.writefile(path, "")
+    w.return_string(event, iif(success, c.cstr!{"OK"}, c.cstr!{"Failed to create file"}))
 
 def show_save_file_dialog(event: w.Event) -> None:
     pass
@@ -169,6 +175,7 @@ def main() -> int:
     w.bind(mw, c.cstr!{"cd"}, change_folder)
     w.bind(mw, c.cstr!{"openfolder"}, show_open_folder_dialog)
     w.bind(mw, c.cstr!{"explore"}, explore)
+    w.bind(mw, c.cstr!{"newfile"}, create_new_file)
 
     # exit
     println("waiting ... ")
