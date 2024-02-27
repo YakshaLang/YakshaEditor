@@ -8,7 +8,7 @@ import libs.os
 import dtraverse as dt
 import dialogs
 
-# TODO move this to numbers
+# TODO move this to numbers or libs.c
 macros! {
     (defun remove_first_last (s)
         (= x (explode_string s))
