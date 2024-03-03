@@ -90,6 +90,10 @@ def list_files(event: w.Event) -> None:
     json: str = file_entries_to_json(f)
     w.return_string(event, cast("c.CStr", json))
 
+def get_documentation(event: w.Event) -> None:
+    doc: str = io.readfile("frontend/docs.yaka")
+    w.return_string(event, cast("c.CStr", doc))
+
 def click_file(event: w.Event) -> None:
     path_cstr: c.CStr = w.get_string(event)
     path: sr = r.wrap_cstr_z(path_cstr)
@@ -141,9 +145,6 @@ def create_new_file(event: w.Event) -> None:
     success: bool = io.writefile(path, "")
     w.return_string(event, iif(success, c.cstr!{"OK"}, c.cstr!{"Failed to create file"}))
 
-def show_save_file_dialog(event: w.Event) -> None:
-    pass
-
 def change_folder(event: w.Event) -> None:
     path_cstr: c.CStr = w.get_string(event)
     path: sr = r.wrap_cstr_z(path_cstr)
@@ -152,7 +153,6 @@ def change_folder(event: w.Event) -> None:
         w.return_string(event, c.cstr!{"Failed to change directory"})
     else:
         w.return_string(event, c.cstr!{"OK"})
-
 
 def main() -> int:
     mw = w.new_window()
@@ -175,6 +175,7 @@ def main() -> int:
     w.bind(mw, c.cstr!{"openfolder"}, show_open_folder_dialog)
     w.bind(mw, c.cstr!{"explore"}, explore)
     w.bind(mw, c.cstr!{"newfile"}, create_new_file)
+    w.bind(mw, c.cstr!{"getdocumentation"}, get_documentation)
 
     # exit
     println("waiting ... ")

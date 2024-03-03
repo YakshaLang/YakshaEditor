@@ -29,11 +29,13 @@ button:active {
 }
 
 
-.main-editor {
+.main-editor, .doc-editor {
     height: calc(100% - 10px) !important;
     width: calc(100% - 10px) !important;
     padding: 5px;
 }
+
+
 
 #filebrowser {
     font-size: 0.6em;

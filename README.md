@@ -16,6 +16,10 @@ Text editor made with Yaksha and webui and monaco editor.
 - Additional experiments with thirdparty c libraries that would be a great fit for `Yaksha/runtime`
 - Reasonably sized project to experiment on.
 
+## Why use this editor?
+
+- It's a text editor with syntax highlighting for Yaksha.
+
 ## Why Not to use?
 
 - You are probably better off using JetBrains IDE (such as CLion with Yaksha plugins) or vs code.

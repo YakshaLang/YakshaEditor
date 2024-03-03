@@ -164,9 +164,17 @@ function newfile() {
     });
 }
 
+function load_doc() {
+    webui.call('getdocumentation').then(function (data) {
+        doc_editor.getModel().setValue(data);
+    });
+}
 
 $(document).ready(function () {
-    $('#container').layout();
+    $('#container').layout({
+        initClosed:       false,
+        east__initClosed: true
+    });
     $(document).bind('keydown', function (e) {
         if ((e.ctrlKey || e.metaKey) && (e.code === e.KeyS)) {
             e.preventDefault();
@@ -213,9 +221,20 @@ $(document).ready(function () {
             theme: 'vs-yaksha-theme',
             value: "",
             language: 'yaksha',
+            wordWrap: "on",
             automaticLayout: true,
             bracketPairColorization: {enabled: true},
         });
+    window.doc_editor = monaco.editor.create(document.getElementById('doc-editor'), {
+        theme: 'vs-yaksha-theme',
+        value: "hello world",
+        language: 'yaksha',
+        automaticLayout: true,
+        bracketPairColorization: {enabled: true},
+        wordWrap: "on",
+        readOnly: true,
+    });
+    setTimeout(load_doc, STATE.default_timeout);
     window.rerender_file_list = debouncer(update_file_list, 100);
     // When we change the model content, update the last edit version id!
     window.editor.onDidChangeModelContent(function (e) {
