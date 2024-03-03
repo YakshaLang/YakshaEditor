@@ -170,6 +170,20 @@ function load_doc() {
     });
 }
 
+function setup_zoom(editor_ob) {
+   editor_ob.getDomNode().addEventListener('wheel', function(event) {
+        if ((event.ctrlKey || event.metaKey) && event.deltaY) {
+            event.preventDefault();
+
+            if (event.deltaY > 0) {
+                editor_ob.trigger('keyboard', 'editor.action.fontZoomOut', {});
+            } else {
+                editor_ob.trigger('keyboard', 'editor.action.fontZoomIn', {});
+            }
+        }
+    });
+}
+
 $(document).ready(function () {
     $('#container').layout({
         initClosed:       false,
@@ -201,7 +215,6 @@ $(document).ready(function () {
     const values2 = Object.values(FILENAME_TO_LANGUAGE);
     console.log("Languages", new Set([...values1, ...values2]));
 
-    const combinedValues = new Set([...values1, ...values2]);
     setTimeout(listfiles, STATE.default_timeout);
     monaco.languages.register({
         id: 'yaksha'
@@ -231,6 +244,7 @@ $(document).ready(function () {
         language: 'yaksha',
         automaticLayout: true,
         bracketPairColorization: {enabled: true},
+        minimap: {enabled: false},
         wordWrap: "on",
         readOnly: true,
     });
@@ -241,6 +255,8 @@ $(document).ready(function () {
         STATE.last_edit_version_id = window.editor.getModel().getVersionId();
         window.rerender_file_list();
     });
+    setup_zoom(window.editor);
+    setup_zoom(window.doc_editor);
     STATE.last_saved_version_id = window.editor.getModel().getVersionId();
     STATE.last_edit_version_id = window.editor.getModel().getVersionId();
     $('#loading-animation').remove();
