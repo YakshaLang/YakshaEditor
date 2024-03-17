@@ -25,7 +25,7 @@ module.exports = {
             {
                 test: /\.ttf$/,
                 // Manual hack to fix font loading in monaco-editor in webui+webpack monster
-                // first run this wil file-loader, then replace ttf redirect file with real ttf
+                // first run this with file-loader, then replace ttf redirect file with real ttf
                 // then switch to null-loader
                 use: ['null-loader']
             }

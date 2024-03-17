@@ -6,6 +6,7 @@ function yaksha_tokenizer_rules() {
         keywords: ["as", "break", "class", "struct", "continue", "def",
             "del", "defer", "else", "if", "elif", "import", "pass", "return",
             "while", "True", "False", "None", "runtimefeature", "for", "in",
+            "directive"
         ],
 
         typeKeywords: ["int", "i8", "i16", "i32", "i64", "u8", "u16", "u32",
@@ -544,7 +545,7 @@ function yaksha_tokenizer_rules() {
                         '@default': 'identifier'
                     }
                 }],
-                [/#[a-zA-Z_][a-zA-Z0-9_]*$/, 'c-preprocessor'],
+                [/^\s*#[a-zA-Z_][a-zA-Z0-9_]*/, 'c-preprocessor'],
                 [/\d*\.\d+([eE][\-+]?\d+)?/, 'number.float'],
                 [/0[xX][0-9a-fA-F]+/, 'number.hex'],
                 [/\d+/, 'number'],
@@ -571,7 +572,7 @@ function yaksha_configuration() {
     return {
         comments: {
             lineComment: "#",
-            blockComment: ["'''", "'''"]
+            blockComment: ['"""', '"""']
         },
         brackets: [
             ["{", "}"],
