@@ -1,12 +1,36 @@
-import webui as w
+# Standard libs
 import libs.c
 import libs.strings.refs as r
 import libs.strings.array as sarr
 import libs.console
 import libs.io
 import libs.os
+import libs.os.path as op
+import libs.fileformats.ini
+# --
 import dtraverse as dt
 import dialogs
+import webui as w
+
+directive ccode """
+static void* ye_data = NULL;
+
+void* ye_get_state() { ye_data; }
+void ye_set_state(void* data) { ye_data = data; }
+"""
+directive apply_nativedefine
+
+class State:
+    yaksha: sr
+    exe: sr
+
+@nativedefine("ye_get_state")
+def get_state() -> State:
+    pass
+
+@nativedefine("ye_set_state")
+def set_state(data: State) -> None:
+    pass
 
 # TODO move this to numbers or libs.c
 macros! {
@@ -77,12 +101,12 @@ def file_entries_to_json(entries: Array[dt.Entry]) -> str:
     return json
 
 def get_compilation_errors(event: w.Event) -> None:
-    yaka = os.which("yaksha")
-    if yaka == "":
-        w.return_string(event, cast("c.CStr", "yaksha not found"))
-        return
-    arguments: Array[str] = array("str", "yaksha", "compile", "main.yaka")
-    result = os.run(arguments)
+#    yaka = os.which("yaksha")
+#    if yaka == "":
+#        w.return_string(event, cast("c.CStr", "yaksha not found"))
+#        return
+#    arguments: Array[str] = array("str", "yaksha", "compile", "main.yaka")
+#    result = os.run(arguments)
     w.return_string(event, cast("c.CStr", "[]"))
 
 def list_files(event: w.Event) -> None:
@@ -92,6 +116,10 @@ def list_files(event: w.Event) -> None:
 
 def get_documentation(event: w.Event) -> None:
     doc: str = io.readfile("frontend/docs.yaka")
+    w.return_string(event, cast("c.CStr", doc))
+
+def get_doc_json(event: w.Event) -> None:
+    doc: str = io.readfile("frontend/docs.json")
     w.return_string(event, cast("c.CStr", doc))
 
 def click_file(event: w.Event) -> None:
@@ -154,14 +182,35 @@ def change_folder(event: w.Event) -> None:
     else:
         w.return_string(event, c.cstr!{"OK"})
 
+def get_yaksha_binary() -> str:
+    data = ini.from_str(io.readfile("settings.ini"))
+    defer ini.del_ini(data)
+    path = ini.get(data, "compiler", "yaksha")
+    if len(path) > 0 and op.executable(path):
+        return path
+    return os.which("yaksha")
+
 def main() -> int:
+    exe_path: str = os.exe_path()
+    yaksha_bin: str = get_yaksha_binary()
+
+    print("exe_path = ")
+    println(exe_path)
+    os.chdir(exe_path)
+
+    state = State()
+    state.yaksha = yaksha_bin
+    state.exe = exe_path
+    defer del state
+    set_state(state)
+
     mw = w.new_window()
     println("created window")
-    yaksha = os.which("yaksha")
-    if yaksha == "":
-        dialogs.beep()
+    if state.yaksha == "":
+        println("failed to find yaksha binary")
+        return -1
     else:
-        println("yaksha binary found at: " + yaksha)
+        println("yaksha binary found at: " + state.yaksha)
 
     w.set_root_folder(mw, c.cstr!{"frontend"})
     # w.bind(mw, "__close-btn", on_close)
@@ -176,6 +225,7 @@ def main() -> int:
     w.bind(mw, c.cstr!{"explore"}, explore)
     w.bind(mw, c.cstr!{"newfile"}, create_new_file)
     w.bind(mw, c.cstr!{"getdocumentation"}, get_documentation)
+    w.bind(mw, c.cstr!{"getdocjson"}, get_doc_json)
 
     # exit
     println("waiting ... ")

@@ -2,7 +2,8 @@
 #include "dirent.h"
 #include "yk__system.h"
 #include "whereami.h"
-#include "toml.h"
+#define INI_IMPLEMENTATION
+#include "ini.h"
 #include "yk__console.h"
 #include "yk__arrayutils.h"
 #include "yk__process.h"

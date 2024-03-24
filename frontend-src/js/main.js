@@ -170,11 +170,17 @@ function load_doc() {
     });
 }
 
+function load_doc_json() {
+    webui.call('getdocjson').then(function (data) {
+        setup_docs(JSON.parse(data), monaco);
+        console.log("doc json loaded");
+    });
+}
+
 function setup_zoom(editor_ob) {
    editor_ob.getDomNode().addEventListener('wheel', function(event) {
         if ((event.ctrlKey || event.metaKey) && event.deltaY) {
             event.preventDefault();
-
             if (event.deltaY > 0) {
                 editor_ob.trigger('keyboard', 'editor.action.fontZoomOut', {});
             } else {
@@ -184,28 +190,29 @@ function setup_zoom(editor_ob) {
     });
 }
 
+
 $(document).ready(function () {
     $('#container').layout({
         initClosed:       false,
         east__initClosed: true
     });
     $(document).bind('keydown', function (e) {
-        if ((e.ctrlKey || e.metaKey) && (e.code === e.KeyS)) {
+        if ((e.ctrlKey || e.metaKey) && (e.key === "s")) {
             e.preventDefault();
             console.log("Ctrl + S pressed!");
             return false;
         }
-        if ((e.ctrlKey || e.metaKey) && (e.code === e.KeyO)) {
+        if ((e.ctrlKey || e.metaKey) && (e.key === "o")) {
             e.preventDefault();
             console.log("Ctrl + O pressed!");
             return false;
         }
-        if ((e.ctrlKey || e.metaKey) && (e.code === e.KeyO)) {
+        if ((e.ctrlKey || e.metaKey) && (e.key === "z")) {
             e.preventDefault();
             console.log("Ctrl + Z pressed!");
             return false;
         }
-        if ((e.ctrlKey || e.metaKey) && (e.code === e.KeyN)) {
+        if ((e.ctrlKey || e.metaKey) && (e.key === "n")) {
             e.preventDefault();
             console.log("Ctrl + N pressed!");
             return false;
@@ -249,6 +256,7 @@ $(document).ready(function () {
         readOnly: true,
     });
     setTimeout(load_doc, STATE.default_timeout);
+    setTimeout(load_doc_json, STATE.default_timeout);
     window.rerender_file_list = debouncer(update_file_list, 100);
     // When we change the model content, update the last edit version id!
     window.editor.onDidChangeModelContent(function (e) {

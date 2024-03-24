@@ -3,6 +3,9 @@ project(YakshaEditor C)
 
 set(CMAKE_C_STANDARD 99)
 
+get_filename_component(CMAKE_BINARY_DIR "." ABSOLUTE)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+
 get_filename_component(YK_PATH "../Yaksha/compiler" ABSOLUTE)
 set(YK_RT_PATH "${YK_PATH}/runtime")
 set(YK_COMPILER_PATH "${YK_PATH}/bin/yaksha")
