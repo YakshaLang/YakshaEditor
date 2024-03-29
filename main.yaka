@@ -190,6 +190,8 @@ def get_yaksha_binary() -> str:
         return path
     return os.which("yaksha")
 
+# TODO major bug -- save when exit
+
 def main() -> int:
     exe_path: str = os.exe_path()
     yaksha_bin: str = get_yaksha_binary()
@@ -233,6 +235,4 @@ def main() -> int:
     println("done")
     w.clean()
     println("cleaned")
-    println("press any key to exit")
-    console.getch()
     return 0

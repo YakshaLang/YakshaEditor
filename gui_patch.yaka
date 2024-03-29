@@ -1,0 +1,19 @@
+# TODO: This is a work in progress, it doesn't work yet
+# Patch an .exe file to have the GUI subsystem
+# Based on https://gist.github.com/jeremyd2019/a3a4bfd94359c5851b9c8b105560a1bd
+
+directive c_include "windows.h"
+directive c_include "stddef.h"
+
+import libs.io
+
+GUI_SUBSYSTEM: Const[u16] = 2u16
+
+
+def main() -> int:
+    fh: Ptr[io.File] = io.fopen("x", "r+b")
+    if fh == None:
+        println("Failed to open file")
+        return 2
+    return 0
+

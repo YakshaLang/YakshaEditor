@@ -28,7 +28,6 @@ yk__sds yy__os_getenv(yk__sds);
 yk__sds yy__os_which(yk__sds);
 yk__sds yy__io_readfile(yk__sds);
 bool yy__io_writefile(yk__sds, yk__sds);
-int32_t yy__console_getch();
 struct yk__bstr yy__refs_wrap_cstr_z(yy__c_CStr);
 yk__sds yy__append_char(struct yk__bstr, int32_t);
 yk__sds yy__escape_js_string(struct yk__bstr);
@@ -478,10 +477,6 @@ yk__sds yy__os_which(yk__sds yy__os_binary)
 }
 yk__sds yy__io_readfile(yk__sds nn__fname) { return yk__io_readfile(nn__fname); }
 bool yy__io_writefile(yk__sds nn__fname, yk__sds nn__data) { return yk__io_writefile(nn__fname, nn__data); }
-int32_t yy__console_getch() 
-{
-    return yk__getch();
-}
 struct yk__bstr yy__refs_wrap_cstr_z(yy__c_CStr yy__refs_s) 
 {
     struct yk__bstr t__0 = yk__bstr_c(yy__refs_s, ((int32_t)strlen(yy__refs_s)));
@@ -819,8 +814,6 @@ int32_t yy__main()
     yk__printlnstr("done");
     webui_clean();
     yk__printlnstr("cleaned");
-    yk__printlnstr("press any key to exit");
-    yy__console_getch();
     free(yy__state);
     yk__sdsfree(yy__yaksha_bin);
     yk__sdsfree(t__27);
