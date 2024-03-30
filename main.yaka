@@ -167,11 +167,11 @@ def create_new_file(event: w.Event) -> None:
     default_filename: c.CStr = c.cstr!{"newfile.yaka"}
     filename = dialogs.input_box(c.cstr!{"YakshaEditor"}, c.cstr!{"Enter file name"}, default_filename)
     if filename == None:
-        w.return_string(event, c.cstr!{"Cancelled"})
+        w.return_string(event, c.cstr!{""})
         return
     path: sr = r.wrap_cstr_z(filename)
     success: bool = io.writefile(path, "")
-    w.return_string(event, iif(success, c.cstr!{"OK"}, c.cstr!{"Failed to create file"}))
+    w.return_string(event, iif(success, filename, c.cstr!{""}))
 
 def change_folder(event: w.Event) -> None:
     path_cstr: c.CStr = w.get_string(event)

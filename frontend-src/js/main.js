@@ -10,6 +10,7 @@ let STATE = {
     current_file_dirty: false,
     last_saved_version_id: NEVER_CHANGED_VERSION_INDICATOR,
     last_edit_version_id: NEVER_CHANGED_VERSION_INDICATOR,
+    set_unload_warning: false,
 };
 
 function is_dirty() {
@@ -108,6 +109,28 @@ function save_then_continue(callback) {
     });
 }
 
+function save_current() {
+    if (!is_dirty()) {
+        return;
+    }
+    if (STATE.current_file === "") {
+        // new file we haven't saved yet
+        webui.call('newfile').then(function (data) {
+            if (!data) {
+                return;
+            }
+            STATE.current_file = data;
+            save_then_continue(function () {
+                listfiles();
+            });
+        });
+    } else {
+        save_then_continue(function () {
+            listfiles();
+        });
+    }
+}
+
 function explore() {
     webui.call('explore').then(function (data) {
         console.log("explore", data);
@@ -199,7 +222,7 @@ $(document).ready(function () {
     $(document).bind('keydown', function (e) {
         if ((e.ctrlKey || e.metaKey) && (e.key === "s")) {
             e.preventDefault();
-            console.log("Ctrl + S pressed!");
+            save_current();
             return false;
         }
         if ((e.ctrlKey || e.metaKey) && (e.key === "o")) {
@@ -217,7 +240,14 @@ $(document).ready(function () {
             console.log("Ctrl + N pressed!");
             return false;
         }
+        if ((e.ctrlKey || e.metaKey) && (e.key === "p")) {
+            e.preventDefault();
+            console.log("Ctrl + P pressed!");
+            return false;
+        }
     });
+    // Save on visibility change
+    document.addEventListener("visibilitychange", save_current);
     const values1 = Object.values(EXTENSION_TO_LANGUAGE);
     const values2 = Object.values(FILENAME_TO_LANGUAGE);
     console.log("Languages", new Set([...values1, ...values2]));
@@ -258,9 +288,13 @@ $(document).ready(function () {
     setTimeout(load_doc, STATE.default_timeout);
     setTimeout(load_doc_json, STATE.default_timeout);
     window.rerender_file_list = debouncer(update_file_list, 100);
+    window.save_current_debounced = debouncer(save_current, 300);
     // When we change the model content, update the last edit version id!
     window.editor.onDidChangeModelContent(function (e) {
         STATE.last_edit_version_id = window.editor.getModel().getVersionId();
+        if (is_dirty() && STATE.current_file !== "") {
+            window.save_current_debounced();
+        }
         window.rerender_file_list();
     });
     setup_zoom(window.editor);

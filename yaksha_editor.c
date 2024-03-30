@@ -721,12 +721,12 @@ void yy__create_new_file(yy__webui_Event yy__event)
     yy__c_CStr yy__filename = tinyfd_inputBox("YakshaEditor", "Enter file name", yy__default_filename);
     if (yy__filename == NULL)
     {
-        webui_return_string(yy__event, "Cancelled");
+        webui_return_string(yy__event, "");
         return;
     }
     struct yk__bstr yy__path = yy__refs_wrap_cstr_z(yy__filename);
     bool yy__success = yy__io_writefile(yk__bstr_copy_to_sds(yy__path), yk__sdsnewlen("", 0));
-    webui_return_string(yy__event, (yy__success ? "OK" : "Failed to create file"));
+    webui_return_string(yy__event, (yy__success ? yy__filename : ""));
     return;
 }
 void yy__change_folder(yy__webui_Event yy__event) 
