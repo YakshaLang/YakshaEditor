@@ -15,7 +15,7 @@ import webui as w
 directive ccode """
 static void* ye_data = NULL;
 
-void* ye_get_state() { ye_data; }
+void* ye_get_state() { return ye_data; }
 void ye_set_state(void* data) { ye_data = data; }
 """
 directive apply_nativedefine
