@@ -161,8 +161,7 @@ function toggle_hidden() {
 function compile() {
     save_then_continue(function () {
         webui.call('compile').then(function (data) {
-            monaco.editor.setModelMarkers(window.editor.getModel(), "owner",
-                []);
+            monaco.editor.removeAllMarkers("owner");
             if (data) {
                 console.log("compile error\n", data);
                 // parse the data string and get line number and column
@@ -377,8 +376,9 @@ $(document).ready(function () {
         if (is_dirty() && STATE.current_file !== "") {
             window.save_current_debounced();
             window.compile_debounced();
+        } else {
+            window.rerender_file_list();
         }
-        window.rerender_file_list();
     });
     setup_zoom(window.editor);
     setup_zoom(window.doc_editor);

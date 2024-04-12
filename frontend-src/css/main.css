@@ -297,3 +297,7 @@ body, html, .main-container {
         opacity: 0.5;
     }
 }
+
+div.monaco-hover-content div.status-bar {
+    display: none !important;
+}
