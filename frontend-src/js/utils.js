@@ -1,5 +1,6 @@
 const FOLDER = "<span class='codicon codicon-folder'></span>";
 const FILE = "<span class='codicon codicon-file'></span>";
+const FILE_CODE = "<span class='codicon codicon-file-code'></span>";
 const EXTENSION_TO_LANGUAGE = {
     "yaka": "yaksha",
     "l": "yaksha", // TODO yaksha lisp?

@@ -12,6 +12,7 @@ let STATE = {
     last_saved_version_id: NEVER_CHANGED_VERSION_INDICATOR,
     last_edit_version_id: NEVER_CHANGED_VERSION_INDICATOR,
     set_unload_warning: false,
+    show_hidden: false,
 };
 
 function is_dirty() {
@@ -38,12 +39,30 @@ function update_file_list() {
         if (f.name === ".") {
             continue;
         }
+        if (!STATE.show_hidden && f.name !== "..") {
+            if (f.name.startsWith(".") || f.name.startsWith("cmake") ||
+                f.name === "build" ||
+                f.name === "CMakeLists.txt" || f.name === "Makefile" ||
+                f.name === "Makefile.am" || f.name === "Makefile.in" ||
+                f.name === "configure" || f.name === "configure.ac" ||
+                f.name === "config.h" || f.name === "config.h.in" ||
+                f.name === "config.log" || f.name === "config.status" ||
+                f.name.endsWith(".o") || f.name.endsWith(".a") ||
+                f.name.endsWith(".so") || f.name.endsWith(".dll") ||
+                f.name.endsWith(".dylib") || f.name.endsWith(".exe") ||
+                f.name.endsWith(".out") || f.name.endsWith(".bin") ||
+                f.name.endsWith(".tmp") || f.name.endsWith(".log") ||
+                f.name.endsWith(".swp") || f.name.endsWith("~")) {
+                continue;
+            }
+        }
         const fType = (f.type === "d" ? "folder" : "file");
         const htmlClass = fType
             + (f.name === STATE.current_file ? " current-file" : "")
             + (is_dirty() && f.name === STATE.current_file ? " dirty-file" : "")
             + (f.name === ".." ? " red-folder" : "");
-        const icon = fType === "folder" ? FOLDER : FILE;
+        const icon = fType === "folder" ? FOLDER :
+            (f.name.endsWith(".yaka") ? FILE_CODE : FILE);
         html += "<div onclick='clickfile(" + quoteJsThenEscapeHtml(f.name)
             + "," + quoteJsThenEscapeHtml(fType) + ")' class='" +
             htmlClass + "'>"
@@ -132,6 +151,11 @@ function save_current() {
             listfiles();
         });
     }
+}
+
+function toggle_hidden() {
+    STATE.show_hidden = !STATE.show_hidden;
+    rerender_file_list();
 }
 
 function compile() {
