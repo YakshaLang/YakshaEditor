@@ -3,6 +3,7 @@ let STATE = {
     file_list: [],
     listfiles_init: false,
     listfiles_err: 0,
+    cwd: "",
     default_retries: 3,
     default_timeout: 300,
     current_file: "",
@@ -19,8 +20,10 @@ function is_dirty() {
 
 function update_file_list() {
     const data = STATE.file_list;
+    const files_data = JSON.parse(data);
+    STATE.cwd = files_data.cwd;
     let html = "";
-    const files = JSON.parse(data).sort((a, b) => {
+    const files = files_data.files.sort((a, b) => {
         if (a.type === "d" && b.type === "f") {
             return -1;
         }
@@ -131,6 +134,47 @@ function save_current() {
     }
 }
 
+function compile() {
+    save_then_continue(function () {
+        webui.call('compile').then(function (data) {
+            monaco.editor.setModelMarkers(window.editor.getModel(), "owner",
+                []);
+            if (data) {
+                console.log("compile error\n", data);
+                // parse the data string and get line number and column
+                // number, then set the marker
+                const lines = data.split("\n");
+                const markers = [];
+                for (let line of lines) {
+                    if (line === "" || !line.startsWith("{\"file\":")) {
+                        continue;
+                    }
+                    console.log("line", line);
+                    const errorData = JSON.parse(line);
+                    console.log("errorData", errorData);
+                    if (!errorData.file || errorData.relative_file !==
+                        STATE.current_file) {
+                        continue;
+                    }
+                    markers.push({
+                        startLineNumber: errorData.line,
+                        startColumn: errorData.pos,
+                        endLineNumber: errorData.line,
+                        endColumn: errorData.pos + errorData.token.length,
+                        message: errorData.message,
+                        severity: monaco.MarkerSeverity.Error
+                    });
+                }
+                console.log("markers", markers);
+                monaco.editor.setModelMarkers(window.editor.getModel(), "owner",
+                    markers);
+            } else {
+                console.log("no compile error");
+            }
+        });
+    });
+}
+
 function explore() {
     webui.call('explore').then(function (data) {
         console.log("explore", data);
@@ -188,20 +232,32 @@ function newfile() {
 }
 
 function load_doc() {
+    // TODO get rid of this and just use the doc json
     webui.call('getdocumentation').then(function (data) {
-        doc_editor.getModel().setValue(data);
+        try {
+            doc_editor.getModel().setValue(data);
+            console.log("doc loaded");
+        } catch (e) {
+            console.log("Error loading documentation");
+            setTimeout(load_doc, STATE.default_timeout);
+        }
     });
 }
 
 function load_doc_json() {
     webui.call('getdocjson').then(function (data) {
-        setup_docs(JSON.parse(data), monaco);
-        console.log("doc json loaded");
+        try {
+            setup_docs(JSON.parse(data), monaco);
+            console.log("doc json loaded");
+        } catch (e) {
+            console.log("Error parsing doc json");
+            setTimeout(load_doc_json, STATE.default_timeout);
+        }
     });
 }
 
 function setup_zoom(editor_ob) {
-   editor_ob.getDomNode().addEventListener('wheel', function(event) {
+    editor_ob.getDomNode().addEventListener('wheel', function (event) {
         if ((event.ctrlKey || event.metaKey) && event.deltaY) {
             event.preventDefault();
             if (event.deltaY > 0) {
@@ -216,7 +272,7 @@ function setup_zoom(editor_ob) {
 
 $(document).ready(function () {
     $('#container').layout({
-        initClosed:       false,
+        initClosed: false,
         east__initClosed: true
     });
     $(document).bind('keydown', function (e) {
@@ -275,25 +331,28 @@ $(document).ready(function () {
             automaticLayout: true,
             bracketPairColorization: {enabled: true},
         });
-    window.doc_editor = monaco.editor.create(document.getElementById('doc-editor'), {
-        theme: 'vs-yaksha-theme',
-        value: "hello world",
-        language: 'yaksha',
-        automaticLayout: true,
-        bracketPairColorization: {enabled: true},
-        minimap: {enabled: false},
-        wordWrap: "on",
-        readOnly: true,
-    });
+    window.doc_editor =
+        monaco.editor.create(document.getElementById('doc-editor'), {
+            theme: 'vs-yaksha-theme',
+            value: "hello world",
+            language: 'yaksha',
+            automaticLayout: true,
+            bracketPairColorization: {enabled: true},
+            minimap: {enabled: false},
+            wordWrap: "on",
+            readOnly: true,
+        });
     setTimeout(load_doc, STATE.default_timeout);
     setTimeout(load_doc_json, STATE.default_timeout);
     window.rerender_file_list = debouncer(update_file_list, 100);
     window.save_current_debounced = debouncer(save_current, 300);
+    window.compile_debounced = debouncer(compile, 300);
     // When we change the model content, update the last edit version id!
     window.editor.onDidChangeModelContent(function (e) {
         STATE.last_edit_version_id = window.editor.getModel().getVersionId();
         if (is_dirty() && STATE.current_file !== "") {
             window.save_current_debounced();
+            window.compile_debounced();
         }
         window.rerender_file_list();
     });

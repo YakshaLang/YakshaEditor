@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "build-monaco": "webpack --config webpack.config.js --progress"
+    "build-monaco": "webpack --config webpack.config.js --progress",
+    "build-editor": "grunt"
   },
   "keywords": [],
   "author": {

@@ -14,9 +14,9 @@ import webui as w
 
 directive ccode """
 static void* ye_data = NULL;
-
 void* ye_get_state() { return ye_data; }
 void ye_set_state(void* data) { ye_data = data; }
+
 """
 directive apply_nativedefine
 
@@ -32,24 +32,6 @@ def get_state() -> State:
 def set_state(data: State) -> None:
     pass
 
-# TODO move this to numbers or libs.c
-macros! {
-    (defun remove_first_last (s)
-        (= x (explode_string s))
-        (= x (tail x))
-        (pop x)
-        (= res (reduce + x))
-        res)
-    (defun char (elem)
-        (list (yk_create_token YK_TOKEN_NAME "inlinec")
-            (ykt_paren_open)
-            (ykt_string "int") (ykt_comma)
-            (ykt_string (+ "'" (remove_first_last (repr elem::value)) "'")) (ykt_paren_close)))
-    (yk_register {dsl char char})
-    # char!{"a"} --> inlinec("int", "'a'")
-}
-
-# TODO consider adding this to standard library
 @native
 def append_char(s: sr, character: int) -> str:
     ccode """size_t length = yk__bstr_len(nn__s);
@@ -59,27 +41,25 @@ def append_char(s: sr, character: int) -> str:
     result[length] = nn__character;
     return result"""
 
-# TODO move this to strings
-# TODO use string buffer
 def escape_js_string(s: sr) -> str:
     length = len(s)
     result: str = ""
     cur: int = 0
     for (i = 0; i < length; i += 1):
         cur = charat(s, i)
-        if cur == char!{"\""}:
+        if cur == cast("int", c.char!{"\""}):
             result += "\\\""
-        elif cur == char!{"\\"}:
+        elif cur == cast("int", c.char!{"\\"}):
             result += "\\\\"
-        elif cur == char!{"\b"}:
+        elif cur == cast("int", c.char!{"\b"}):
             result += "\\b"
-        elif cur == char!{"\f"}:
+        elif cur == cast("int", c.char!{"\f"}):
             result += "\\f"
-        elif cur == char!{"\n"}:
+        elif cur == cast("int", c.char!{"\n"}):
             result += "\\n"
-        elif cur == char!{"\r"}:
+        elif cur == cast("int", c.char!{"\r"}):
             result += "\\r"
-        elif cur == char!{"\t"}:
+        elif cur == cast("int", c.char!{"\t"}):
             result += "\\t"
         else:
             result = append_char(result, cur)
@@ -87,7 +67,10 @@ def escape_js_string(s: sr) -> str:
 
 
 def file_entries_to_json(entries: Array[dt.Entry]) -> str:
-    json: str = "["
+    current_dir = os.cwd()
+    json: str = "{\"cwd\": \""
+    json += escape_js_string(current_dir)
+    json += "\", \"files\": ["
     counter = 0
     for i in entries:
         json += "{"
@@ -97,17 +80,18 @@ def file_entries_to_json(entries: Array[dt.Entry]) -> str:
         if counter < len(entries) - 1:
             json += ","
         counter += 1
-    json += "]"
+    json += "]}"
     return json
 
 def get_compilation_errors(event: w.Event) -> None:
-#    yaka = os.which("yaksha")
-#    if yaka == "":
-#        w.return_string(event, cast("c.CStr", "yaksha not found"))
-#        return
-#    arguments: Array[str] = array("str", "yaksha", "compile", "main.yaka")
-#    result = os.run(arguments)
-    w.return_string(event, cast("c.CStr", "[]"))
+    println("compiling ...")
+    state: State = get_state()
+    compiler: str = state.yaksha
+    arguments: Array[str] = array("str", compiler, "compile", "-d", "main.yaka")
+    defer sarr.del_str_array(arguments)
+    result: os.ProcessResult = os.run(arguments)
+    w.return_string(event, cast("c.CStr", result.output))
+    defer os.del_process_result(result)
 
 def list_files(event: w.Event) -> None:
     f = dt.listdir(".")
@@ -115,11 +99,17 @@ def list_files(event: w.Event) -> None:
     w.return_string(event, cast("c.CStr", json))
 
 def get_documentation(event: w.Event) -> None:
-    doc: str = io.readfile("frontend/docs.yaka")
+    state: State = get_state()
+    exe_path: sr = state.exe
+    doc_path: sr = op.join(exe_path, "frontend/docs.yaka")
+    doc: str = io.readfile(doc_path)
     w.return_string(event, cast("c.CStr", doc))
 
 def get_doc_json(event: w.Event) -> None:
-    doc: str = io.readfile("frontend/docs.json")
+    state: State = get_state()
+    exe_path: sr = state.exe
+    doc_path: sr = op.join(exe_path, "frontend/docs.json")
+    doc: str = io.readfile(doc_path)
     w.return_string(event, cast("c.CStr", doc))
 
 def click_file(event: w.Event) -> None:
@@ -153,7 +143,6 @@ def explore(event: w.Event) -> None:
         program = os.which("open")
     else:
         program = os.which("xdg-open")
-
     if program == "":
         w.return_string(event, c.cstr!{"Failed to locate file explorer"})
         return
@@ -182,23 +171,25 @@ def change_folder(event: w.Event) -> None:
     else:
         w.return_string(event, c.cstr!{"OK"})
 
-def get_yaksha_binary() -> str:
-    data = ini.from_str(io.readfile("settings.ini"))
+def get_yaksha_binary(exe_path: sr) -> str:
+    ini_path: str = op.join(exe_path, "settings.ini")
+    from_which = os.which("yaksha")
+    # if settings.ini does not exist, try to find yaksha in PATH
+    if not op.exists(ini_path):
+        return from_which
+    data = ini.from_str(io.readfile(ini_path))
     defer ini.del_ini(data)
     path = ini.get(data, "compiler", "yaksha")
     if len(path) > 0 and op.executable(path):
         return path
-    return os.which("yaksha")
-
-# TODO major bug -- save when exit
+    return from_which
 
 def main() -> int:
     exe_path: str = os.exe_path()
-    yaksha_bin: str = get_yaksha_binary()
+    yaksha_bin: str = get_yaksha_binary(exe_path)
 
     print("exe_path = ")
     println(exe_path)
-    os.chdir(exe_path)
 
     state = State()
     state.yaksha = yaksha_bin
@@ -214,8 +205,8 @@ def main() -> int:
     else:
         println("yaksha binary found at: " + state.yaksha)
 
-    w.set_root_folder(mw, c.cstr!{"frontend"})
-    # w.bind(mw, "__close-btn", on_close)
+    frontend: str = op.join(exe_path, "frontend")
+    w.set_root_folder(mw, cast("c.CStr", frontend))
     w.show(mw, c.cstr!{"index.html"})
 
     # bind events
@@ -228,6 +219,7 @@ def main() -> int:
     w.bind(mw, c.cstr!{"newfile"}, create_new_file)
     w.bind(mw, c.cstr!{"getdocumentation"}, get_documentation)
     w.bind(mw, c.cstr!{"getdocjson"}, get_doc_json)
+    w.bind(mw, c.cstr!{"compile"}, get_compilation_errors)
 
     # exit
     println("waiting ... ")

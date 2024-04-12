@@ -20,6 +20,21 @@ button {
     text-shadow: 0 0 10px #0f0f41, 0 0 20px #0f0f41, 0 0 30px #0f0f41, 0 0 40px #0f0f41, 0 0 50px #0f0f41, 0 0 60px #0f0f41, 0 0 70px #0f0f41;
 }
 
+.red-button {
+    background-color: #f85555; /* Adjust the color of the button */
+    box-shadow: 0px 0px 8px rgba(0, 0, 0, 0.1), 0px 0px 12px rgba(0, 0, 0, 0.2), inset 2px 2px 5px rgba(255, 255, 255, 0.05), inset -2px -2px 5px rgba(0, 0, 0, 0.2);
+    color: #ffffff; /* Adjust the font color */
+    text-shadow: 0 0 10px #f85555, 0 0 20px #f85555, 0 0 30px #f85555, 0 0 40px #f85555, 0 0 50px #f85555, 0 0 60px #f85555, 0 0 70px #f85555;
+}
+
+.red-button:hover {
+    box-shadow: 0px 0px 12px rgba(0, 0, 0, 0.2), 0px 0px 18px rgba(0, 0, 0, 0.3), inset 2px 2px 8px rgba(255, 255, 255, 0.1), inset -2px -2px 8px rgba(0, 0, 0, 0.3); /* Adjust shadow on hover */
+}
+
+.red-button:active {
+    box-shadow: inset 1px 1px 2px rgba(0, 0, 0, 0.1), inset -1px -1px 2px rgba(0, 0, 0, 0.2); /* Adjust shadow on click */
+}
+
 button:hover {
     box-shadow: 0px 0px 12px rgba(0, 0, 0, 0.2), 0px 0px 18px rgba(0, 0, 0, 0.3), inset 2px 2px 8px rgba(255, 255, 255, 0.1), inset -2px -2px 8px rgba(0, 0, 0, 0.3); /* Adjust shadow on hover */
 }

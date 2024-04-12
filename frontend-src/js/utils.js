@@ -40,6 +40,7 @@ const EXTENSION_TO_LANGUAGE = {
     "lua": "lua",
     "ninja": "yaksha",
     "cmake": "yaksha",
+    "ini": "yaksha",
 };
 const FILENAME_TO_LANGUAGE = {
     "Makefile": "shell",
