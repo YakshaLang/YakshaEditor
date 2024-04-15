@@ -680,6 +680,7 @@ const YAKSHA_STATE = {
     text: "",
     imports: [],
     defs: [],
+    local_docs: null,
 };
 
 function get_imports() {
@@ -758,9 +759,14 @@ function args_to_string(args) {
     return args_str;
 }
 
-function get_library_completes(range, import_name) {
+function get_library_completes(range, import_name, use_local_docs = false) {
     let library_completes = [];
-    const doc = YAKSHA_STATE.docs[import_name];
+    let doc;
+    if (use_local_docs) {
+        doc = YAKSHA_STATE.local_docs[import_name];
+    } else {
+        doc = YAKSHA_STATE.docs[import_name];
+    }
     if (doc) {
         const functions = doc.functions;
         for (const func of functions) {
@@ -847,18 +853,23 @@ function generate_dot_completes(full_word, line, range) {
         } else {
             continue;
         }
+        if (name !== word_without_last_char) {
+            continue;
+        }
         if ((current_import.startsWith("libs") ||
                 current_import.startsWith("w4") ||
-                current_import.startsWith("raylib")) && name ===
-            word_without_last_char) {
+                current_import.startsWith("raylib"))) {
             // get the lib docs for current import
             return get_library_completes(range, current_import);
+        } else {
+            const local_completes = get_library_completes(range, current_import,
+                true);
+            if (local_completes.length > 0) {
+                return local_completes;
+            }
         }
     }
     // TODO
-    //   -- PART 3
-    //   if it is from a local import
-    //   generate it from local docs
     //   -- PART 4
     //   if it is from a local class?
     //   list members
@@ -1436,7 +1447,6 @@ function setup_yaksha_completion_provider() {
             };
         },
     });
-
 }
 
 function setup_docs(docs, monaco) {
@@ -1444,4 +1454,8 @@ function setup_docs(docs, monaco) {
     YAKSHA_STATE.editor = window.editor;
     YAKSHA_STATE.monaco = monaco;
     setup_yaksha_completion_provider();
+}
+
+function setup_local_docs(docs) {
+    YAKSHA_STATE.local_docs = docs;
 }

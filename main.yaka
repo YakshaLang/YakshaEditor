@@ -105,6 +105,16 @@ def get_doc_json(event: w.Event) -> None:
     doc: str = io.readfile(doc_path)
     w.return_string(event, cast("c.CStr", doc))
 
+def get_local_doc_json(event: w.Event) -> None:
+    println("compiling ...")
+    state: State = get_state()
+    compiler: str = state.yaksha
+    arguments: Array[str] = array("str", compiler, "dump", "-a", "-i", "-p", "main.yaka")
+    defer sarr.del_str_array(arguments)
+    result: os.ProcessResult = os.run(arguments)
+    w.return_string(event, cast("c.CStr", result.output))
+    defer os.del_process_result(result)
+
 def click_file(event: w.Event) -> None:
     path_cstr: c.CStr = w.get_string(event)
     path: sr = r.wrap_cstr_z(path_cstr)
@@ -211,6 +221,7 @@ def main() -> int:
     w.bind(mw, c.cstr!{"explore"}, explore)
     w.bind(mw, c.cstr!{"newfile"}, create_new_file)
     w.bind(mw, c.cstr!{"getdocjson"}, get_doc_json)
+    w.bind(mw, c.cstr!{"getlocaljson"}, get_local_doc_json)
     w.bind(mw, c.cstr!{"compile"}, get_compilation_errors)
 
     # exit

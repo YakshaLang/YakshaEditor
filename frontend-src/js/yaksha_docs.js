@@ -76,8 +76,15 @@ function param_to_string(param) {
     return param.name + ": " + datatype_to_string(param.datatype);
 }
 
-function build_tree_html(docs) {
-    const keys = Object.keys(docs).sort();
+function build_tree_html(docs, use_keys = null) {
+    let keys;
+    if (use_keys) {
+        keys = use_keys;
+    } else {
+        keys = Object.keys(docs).sort(function (a, b) {
+            a.localeCompare(b)
+        });
+    }
     let html = '<ul class="tree">';
     for (let i = 0; i < keys.length; i++) {
         const key = keys[i];
@@ -166,4 +173,97 @@ function build_tree_html(docs) {
     }
     html += '</ul>';
     return html;
+}
+
+function asFullMod(modPath) {
+    const parts = modPath.split(/[\\\/]/);
+    const filename = parts[parts.length - 1];
+    const [f, _] = filename.split(".");
+    parts[parts.length - 1] = f;
+    return parts.join(".");
+}
+
+function isSingleName(t) {
+    return /^[A-Za-z][a-zA-Z0-9_]*$/.test(t);
+}
+
+function importToName(imp) {
+    return imp.path.join(".");
+}
+
+function cleanupDataType(dt, modName, imports) {
+    if (dt.module) {
+        const mod = dt.module;
+        if (isSingleName(mod) && imports.hasOwnProperty(mod)) {
+            dt.module = importToName(imports[mod]);
+        } else {
+            delete dt.module;
+        }
+    }
+    if (dt.arguments) {
+        dt.arguments =
+            dt.arguments.map(x => cleanupDataType(x, modName, imports));
+    }
+    return dt;
+}
+
+function cleanupParameter(prm, modName, imports) {
+    prm.datatype = cleanupDataType(prm.datatype, modName, imports);
+    return prm;
+}
+
+function cleanupFunction(fnc, modName, imports) {
+    fnc.return_type = cleanupDataType(fnc.return_type, modName, imports);
+    fnc.parameters =
+        fnc.parameters.map(x => cleanupParameter(x, modName, imports));
+    return fnc;
+}
+
+function cleanupClass(clss, modName, imports) {
+    clss.members = clss.members.map(x => cleanupParameter(x, modName, imports));
+    return clss;
+}
+
+function cleanupStructure(structure, modName) {
+    const imports = structure.imports.reduce((acc, x) => {
+        acc[x.alias] = x;
+        return acc;
+    }, {});
+    structure.functions =
+        structure.functions.map(x => cleanupFunction(x, modName, imports))
+            .sort((a, b) => a.name.localeCompare(b.name));
+    structure.global_consts =
+        structure.global_consts.map(x => cleanupParameter(x, modName, imports))
+            .sort((a, b) => a.name.localeCompare(b.name));
+    structure.classes =
+        structure.classes.map(x => cleanupClass(x, modName, imports))
+            .sort((a, b) => a.name.localeCompare(b.name));
+    const macroEnv = structure.macro_env.sort(
+        (a, b) => a.name.localeCompare(b.name));
+    delete structure.macro_env;
+    const dslPrefix = "yaksha#macro#dsl#";
+    const metaPrefix = "metadata#" + dslPrefix;
+    const macroComments = macroEnv
+        .filter(x => x.name.startsWith(metaPrefix))
+        .reduce((acc, x) => {
+            acc[x.name.slice(metaPrefix.length)] = x.comment;
+            return acc;
+        }, {});
+    const macros = macroEnv
+        .filter(x => x.name.startsWith(dslPrefix))
+        .map(x => x.name.slice(dslPrefix.length));
+    structure.macros =
+        macros.map(x => ({name: x + "!", comment: macroComments[x] || ""}));
+    return structure;
+}
+
+function cleanup_docs_output(docs) {
+    const cleaned = {};
+    const len = docs.length;
+    for (let i = 0; i < len; i++) {
+        const doc = docs[i];
+        const modName = asFullMod(doc.relative_file);
+        cleaned[modName] = cleanupStructure(doc, modName);
+    }
+    return cleaned;
 }

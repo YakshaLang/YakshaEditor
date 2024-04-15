@@ -38,6 +38,7 @@ yk__sds yy__file_entries_to_json(struct yy__dtraverse_Entry**);
 void yy__get_compilation_errors(yy__webui_Event);
 void yy__list_files(yy__webui_Event);
 void yy__get_doc_json(yy__webui_Event);
+void yy__get_local_doc_json(yy__webui_Event);
 void yy__click_file(yy__webui_Event);
 void yy__save_file(yy__webui_Event);
 void yy__show_open_folder_dialog(yy__webui_Event);
@@ -656,15 +657,36 @@ void yy__get_doc_json(yy__webui_Event yy__event)
     yk__sdsfree(t__15);
     return;
 }
+void yy__get_local_doc_json(yy__webui_Event yy__event) 
+{
+    yk__printlnstr("compiling ...");
+    struct yy__State* yy__state = ye_get_state();
+    yk__sds yy__compiler = yk__bstr_copy_to_sds(yy__state->yy__yaksha);
+    yk__sds* t__17 = NULL;
+    yk__arrsetcap(t__17, 6);
+    yk__arrput(t__17, yk__sdsdup(yy__compiler));
+    yk__arrput(t__17, yk__sdsnewlen("dump", 4));
+    yk__arrput(t__17, yk__sdsnewlen("-a", 2));
+    yk__arrput(t__17, yk__sdsnewlen("-i", 2));
+    yk__arrput(t__17, yk__sdsnewlen("-p", 2));
+    yk__arrput(t__17, yk__sdsnewlen("main.yaka", 9));
+    yk__sds* yy__arguments = t__17;
+    yy__os_ProcessResult yy__result = yy__os_run(yy__arguments);
+    webui_return_string(yy__event, ((yy__c_CStr)yy__result->output));
+    yy__os_del_process_result(yy__result);
+    yk__delsdsarray(yy__arguments);
+    yk__sdsfree(yy__compiler);
+    return;
+}
 void yy__click_file(yy__webui_Event yy__event) 
 {
     yy__c_CStr yy__path_cstr = webui_get_string(yy__event);
     struct yk__bstr yy__path = yy__refs_wrap_cstr_z(yy__path_cstr);
-    yk__sds t__17 = yy__io_readfile(yk__bstr_copy_to_sds(yy__path));
-    yk__sds yy__content = yk__sdsdup(t__17);
+    yk__sds t__18 = yy__io_readfile(yk__bstr_copy_to_sds(yy__path));
+    yk__sds yy__content = yk__sdsdup(t__18);
     webui_return_string(yy__event, ((yy__c_CStr)yy__content));
     yk__sdsfree(yy__content);
-    yk__sdsfree(t__17);
+    yk__sdsfree(t__18);
     return;
 }
 void yy__save_file(yy__webui_Event yy__event) 
@@ -679,8 +701,8 @@ void yy__save_file(yy__webui_Event yy__event)
 }
 void yy__show_open_folder_dialog(yy__webui_Event yy__event) 
 {
-    yk__sds t__18 = yy__os_cwd();
-    yk__sds yy__path = yk__sdsdup(t__18);
+    yk__sds t__19 = yy__os_cwd();
+    yk__sds yy__path = yk__sdsdup(t__19);
     yy__c_CStr yy__selected = tinyfd_selectFolderDialog("YakshaEditor", ((yy__c_CStr)yy__path));
     if (yy__selected == NULL)
     {
@@ -691,36 +713,36 @@ void yy__show_open_folder_dialog(yy__webui_Event yy__event)
         webui_return_string(yy__event, yy__selected);
     }
     yk__sdsfree(yy__path);
-    yk__sdsfree(t__18);
+    yk__sdsfree(t__19);
     return;
 }
 void yy__explore(yy__webui_Event yy__event) 
 {
-    yk__sds t__19 = yy__os_cwd();
-    yk__sds yy__path = yk__sdsdup(t__19);
+    yk__sds t__20 = yy__os_cwd();
+    yk__sds yy__path = yk__sdsdup(t__20);
 yk__sds yy__program = yk__sdsempty();
     if (yy__os_is_windows())
     {
-        yk__sds t__20 = yy__os_which(yk__sdsnewlen("explorer", 8));
+        yk__sds t__21 = yy__os_which(yk__sdsnewlen("explorer", 8));
         yk__sdsfree(yy__program);
-        yy__program = yk__sdsdup(t__20);
-        yk__sdsfree(t__20);
+        yy__program = yk__sdsdup(t__21);
+        yk__sdsfree(t__21);
     }
     else
     {
         if (yy__os_is_macos())
         {
-            yk__sds t__21 = yy__os_which(yk__sdsnewlen("open", 4));
-            yk__sdsfree(yy__program);
-            yy__program = yk__sdsdup(t__21);
-            yk__sdsfree(t__21);
-        }
-        else
-        {
-            yk__sds t__22 = yy__os_which(yk__sdsnewlen("xdg-open", 8));
+            yk__sds t__22 = yy__os_which(yk__sdsnewlen("open", 4));
             yk__sdsfree(yy__program);
             yy__program = yk__sdsdup(t__22);
             yk__sdsfree(t__22);
+        }
+        else
+        {
+            yk__sds t__23 = yy__os_which(yk__sdsnewlen("xdg-open", 8));
+            yk__sdsfree(yy__program);
+            yy__program = yk__sdsdup(t__23);
+            yk__sdsfree(t__23);
         }
     }
     if (yk__cmp_sds_lit(yy__program, "", 0) == 0)
@@ -728,19 +750,19 @@ yk__sds yy__program = yk__sdsempty();
         webui_return_string(yy__event, "Failed to locate file explorer");
         yk__sdsfree(yy__program);
         yk__sdsfree(yy__path);
-        yk__sdsfree(t__19);
+        yk__sdsfree(t__20);
         return;
     }
     yy__program = yk__append_sds_lit(yy__program, " \"" , 2);
     yy__program = yk__append_sds_sds(yy__program, yy__path);
     yy__program = yk__append_sds_lit(yy__program, "\"" , 1);
-    yk__sds t__23 = yk__concat_lit_sds("running: ", 9, yy__program);
-    yk__printlnstr(t__23);
+    yk__sds t__24 = yk__concat_lit_sds("running: ", 9, yy__program);
+    yk__printlnstr(t__24);
     system(((yy__c_CStr)yy__program));
-    yk__sdsfree(t__23);
+    yk__sdsfree(t__24);
     yk__sdsfree(yy__program);
     yk__sdsfree(yy__path);
-    yk__sdsfree(t__19);
+    yk__sdsfree(t__20);
     return;
 }
 void yy__create_new_file(yy__webui_Event yy__event) 
@@ -774,50 +796,50 @@ void yy__change_folder(yy__webui_Event yy__event)
 }
 yk__sds yy__get_yaksha_binary(struct yk__bstr yy__exe_path) 
 {
-    yk__sds t__24 = yy__path_join(yy__exe_path, yk__bstr_s("settings.ini", 12));
-    yk__sds yy__ini_path = yk__sdsdup(t__24);
-    yk__sds t__25 = yy__os_which(yk__sdsnewlen("yaksha", 6));
-    yk__sds yy__from_which = yk__sdsdup(t__25);
+    yk__sds t__25 = yy__path_join(yy__exe_path, yk__bstr_s("settings.ini", 12));
+    yk__sds yy__ini_path = yk__sdsdup(t__25);
+    yk__sds t__26 = yy__os_which(yk__sdsnewlen("yaksha", 6));
+    yk__sds yy__from_which = yk__sdsdup(t__26);
     if (!(yk__exists(yk__sdsdup(yy__ini_path))))
     {
-        yk__sds t__26 = yy__from_which;
-        yk__sdsfree(t__25);
+        yk__sds t__27 = yy__from_which;
+        yk__sdsfree(t__26);
         yk__sdsfree(yy__ini_path);
-        yk__sdsfree(t__24);
-        return t__26;
+        yk__sdsfree(t__25);
+        return t__27;
     }
-    yk__sds t__27 = yy__io_readfile(yk__sdsdup(yy__ini_path));
-    yy__ini_Ini yy__data = yy__ini_from_str(yk__bstr_h(t__27));
-    yk__sds t__28 = yy__ini_get(yy__data, yk__bstr_s("compiler", 8), yk__bstr_s("yaksha", 6));
-    yk__sds yy__path = yk__sdsdup(t__28);
+    yk__sds t__28 = yy__io_readfile(yk__sdsdup(yy__ini_path));
+    yy__ini_Ini yy__data = yy__ini_from_str(yk__bstr_h(t__28));
+    yk__sds t__29 = yy__ini_get(yy__data, yk__bstr_s("compiler", 8), yk__bstr_s("yaksha", 6));
+    yk__sds yy__path = yk__sdsdup(t__29);
     if ((yk__sdslen(yy__path) > INT32_C(0)) && yk__executable(yk__sdsdup(yy__path)))
     {
-        yk__sds t__29 = yy__path;
+        yk__sds t__30 = yy__path;
         yy__ini_del_ini(yy__data);
+        yk__sdsfree(t__29);
         yk__sdsfree(t__28);
-        yk__sdsfree(t__27);
         yk__sdsfree(yy__from_which);
-        yk__sdsfree(t__25);
+        yk__sdsfree(t__26);
         yk__sdsfree(yy__ini_path);
-        yk__sdsfree(t__24);
-        return t__29;
+        yk__sdsfree(t__25);
+        return t__30;
     }
-    yk__sds t__30 = yy__from_which;
+    yk__sds t__31 = yy__from_which;
     yy__ini_del_ini(yy__data);
     yk__sdsfree(yy__path);
+    yk__sdsfree(t__29);
     yk__sdsfree(t__28);
-    yk__sdsfree(t__27);
-    yk__sdsfree(t__25);
+    yk__sdsfree(t__26);
     yk__sdsfree(yy__ini_path);
-    yk__sdsfree(t__24);
-    return t__30;
+    yk__sdsfree(t__25);
+    return t__31;
 }
 int32_t yy__main() 
 {
-    yk__sds t__31 = yy__os_exe_path();
-    yk__sds yy__exe_path = yk__sdsdup(t__31);
-    yk__sds t__32 = yy__get_yaksha_binary(yk__bstr_h(yy__exe_path));
-    yk__sds yy__yaksha_bin = yk__sdsdup(t__32);
+    yk__sds t__32 = yy__os_exe_path();
+    yk__sds yy__exe_path = yk__sdsdup(t__32);
+    yk__sds t__33 = yy__get_yaksha_binary(yk__bstr_h(yy__exe_path));
+    yk__sds yy__yaksha_bin = yk__sdsdup(t__33);
     yk__printstr("exe_path = ");
     yk__printlnstr(yy__exe_path);
     struct yy__State* yy__state = calloc(1, sizeof(struct yy__State));
@@ -831,19 +853,19 @@ int32_t yy__main()
         yk__printlnstr("failed to find yaksha binary");
         free(yy__state);
         yk__sdsfree(yy__yaksha_bin);
-        yk__sdsfree(t__32);
+        yk__sdsfree(t__33);
         yk__sdsfree(yy__exe_path);
-        yk__sdsfree(t__31);
+        yk__sdsfree(t__32);
         return INT32_C(-1);
     }
     else
     {
-        yk__sds t__33 = yk__concat_lit_bstr("yaksha binary found at: ", 24, yy__state->yy__yaksha);
-        yk__printlnstr(t__33);
-        yk__sdsfree(t__33);
+        yk__sds t__34 = yk__concat_lit_bstr("yaksha binary found at: ", 24, yy__state->yy__yaksha);
+        yk__printlnstr(t__34);
+        yk__sdsfree(t__34);
     }
-    yk__sds t__34 = yy__path_join(yk__bstr_h(yy__exe_path), yk__bstr_s("frontend", 8));
-    yk__sds yy__frontend = yk__sdsdup(t__34);
+    yk__sds t__35 = yy__path_join(yk__bstr_h(yy__exe_path), yk__bstr_s("frontend", 8));
+    yk__sds yy__frontend = yk__sdsdup(t__35);
     webui_set_root_folder(yy__mw, ((yy__c_CStr)yy__frontend));
     webui_show(yy__mw, "index.html");
     webui_bind(yy__mw, "listfiles", yy__list_files);
@@ -854,6 +876,7 @@ int32_t yy__main()
     webui_bind(yy__mw, "explore", yy__explore);
     webui_bind(yy__mw, "newfile", yy__create_new_file);
     webui_bind(yy__mw, "getdocjson", yy__get_doc_json);
+    webui_bind(yy__mw, "getlocaljson", yy__get_local_doc_json);
     webui_bind(yy__mw, "compile", yy__get_compilation_errors);
     yk__printlnstr("waiting ... ");
     webui_wait();
@@ -862,11 +885,11 @@ int32_t yy__main()
     yk__printlnstr("cleaned");
     free(yy__state);
     yk__sdsfree(yy__frontend);
-    yk__sdsfree(t__34);
+    yk__sdsfree(t__35);
     yk__sdsfree(yy__yaksha_bin);
-    yk__sdsfree(t__32);
+    yk__sdsfree(t__33);
     yk__sdsfree(yy__exe_path);
-    yk__sdsfree(t__31);
+    yk__sdsfree(t__32);
     return INT32_C(0);
 }
 #if defined(YK__MINIMAL_MAIN)

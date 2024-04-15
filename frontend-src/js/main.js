@@ -13,6 +13,7 @@ let STATE = {
     last_edit_version_id: NEVER_CHANGED_VERSION_INDICATOR,
     set_unload_warning: false,
     show_hidden: false,
+    library_docs_original: {},
 };
 
 function is_dirty() {
@@ -259,6 +260,7 @@ function load_doc_json() {
         webui.call('getdocjson').then(function (data) {
             try {
                 const parsed_docs = JSON.parse(data);
+                STATE.library_docs_original = parsed_docs;
                 setup_docs(parsed_docs, monaco);
                 $("#doc-editor").html(build_tree_html(parsed_docs));
                 console.log("doc json loaded");
@@ -267,13 +269,38 @@ function load_doc_json() {
                 setTimeout(load_doc_json, STATE.default_timeout);
             }
         }).catch(function (error) {
-           console.error("Error loading doc json", error);
-              setTimeout(load_doc_json, STATE.default_timeout);
+            console.error("Error loading doc json", error);
+            setTimeout(load_doc_json, STATE.default_timeout);
         });
     } catch (e) {
         console.error("Error loading doc json", e);
         setTimeout(load_doc_json, STATE.default_timeout);
     }
+}
+
+function refreshdocs() {
+    webui.call('getlocaljson').then(function (data) {
+        const u = JSON.parse(data);
+        console.log("local docs", u);
+        const parsed_local_docs = cleanup_docs_output(u);
+        const original_docs = STATE.library_docs_original;
+        const original_keys = Object.keys(original_docs).sort(function (a, b) {
+            a.localeCompare(b)
+        });
+        const local_keys = Object.keys(parsed_local_docs).sort(function (a, b) {
+            a.localeCompare(b)
+        });
+        const merged_keys = [...local_keys, ...original_keys];
+        const merged_docs = {};
+        for (let key of local_keys) {
+            merged_docs[key] = parsed_local_docs[key];
+        }
+        for (let key of original_keys) {
+            merged_docs[key] = original_docs[key];
+        }
+        $("#doc-editor").html(build_tree_html(merged_docs, merged_keys));
+        setup_local_docs(parsed_local_docs, monaco);
+    });
 }
 
 function setup_zoom(editor_ob) {
@@ -288,7 +315,6 @@ function setup_zoom(editor_ob) {
         }
     });
 }
-
 
 $(document).ready(function () {
     $('#container').layout({
