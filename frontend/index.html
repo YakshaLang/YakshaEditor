@@ -29,18 +29,49 @@
     <div class="pane ui-layout-center">
         <div id="editor" class="main-editor"></div>
     </div>
-    <div class="pane ui-layout-north">
+    <div class="pane ui-layout-north toolbar-parent-pane">
         <div id="toolbar" class="toolbar">
             <button title="Save current" onclick="save_current()"><span class='codicon codicon-save'></span></button>
-            <button title="Open folder" onclick="open_folder()"><span class='codicon codicon-folder-opened'></span></button>
+            <button title="Open folder" onclick="open_folder()"><span class='codicon codicon-folder-opened'></span>
+            </button>
             <button title="Refresh files" onclick="listfiles()"><span class='codicon codicon-refresh'></span></button>
-            <button title="Explore" onclick="explore()"><span class='codicon codicon-file-symlink-directory'></span></button>
+            <button title="Explore" onclick="explore()"><span class='codicon codicon-file-symlink-directory'></span>
+            </button>
             <button title="Add a new file" onclick="newfile()"><span class='codicon codicon-new-file'></span></button>
-            <button title="Toggle hidden files" class="red-button" onclick="toggle_hidden()"><span class='codicon codicon-eye'></span></button>
+            <button title="Toggle hidden files" class="red-button" onclick="toggle_hidden()"><span
+                    class='codicon codicon-eye'></span></button>
         </div>
     </div>
     <div class="pane ui-layout-east">
-        <div id="doc-editor" class="doc-editor"></div>
+        <div id="doc-editor" class="doc-editor">
+            <ul class="tree">
+                <li>
+                    <details open>
+                        <summary><span class="codicon codicon-bug red-icon"></span>Giant planets</summary>
+                        <ul>
+                            <li>
+                                <details>
+                                    <summary>Gas giants</summary>
+                                    <ul>
+                                        <li>Jupiter</li>
+                                        <li>Saturn</li>
+                                    </ul>
+                                </details>
+                            </li>
+                            <li>
+                                <details>
+                                    <summary>Ice giants</summary>
+                                    <ul>
+                                        <li>Uranus</li>
+                                        <li>Neptune</li>
+                                    </ul>
+                                </details>
+                            </li>
+                        </ul>
+                    </details>
+                </li>
+            </ul>
+        </div>
     </div>
 </div>
 <!-- ========= MAIN CODE ============= -->

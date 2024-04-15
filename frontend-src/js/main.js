@@ -254,29 +254,26 @@ function newfile() {
     });
 }
 
-function load_doc() {
-    // TODO get rid of this and just use the doc json
-    webui.call('getdocumentation').then(function (data) {
-        try {
-            doc_editor.getModel().setValue(data);
-            console.log("doc loaded");
-        } catch (e) {
-            console.log("Error loading documentation");
-            setTimeout(load_doc, STATE.default_timeout);
-        }
-    });
-}
-
 function load_doc_json() {
-    webui.call('getdocjson').then(function (data) {
-        try {
-            setup_docs(JSON.parse(data), monaco);
-            console.log("doc json loaded");
-        } catch (e) {
-            console.log("Error parsing doc json");
-            setTimeout(load_doc_json, STATE.default_timeout);
-        }
-    });
+    try {
+        webui.call('getdocjson').then(function (data) {
+            try {
+                const parsed_docs = JSON.parse(data);
+                setup_docs(parsed_docs, monaco);
+                $("#doc-editor").html(build_tree_html(parsed_docs));
+                console.log("doc json loaded");
+            } catch (e) {
+                console.error("Error parsing doc json", e);
+                setTimeout(load_doc_json, STATE.default_timeout);
+            }
+        }).catch(function (error) {
+           console.error("Error loading doc json", error);
+              setTimeout(load_doc_json, STATE.default_timeout);
+        });
+    } catch (e) {
+        console.error("Error loading doc json", e);
+        setTimeout(load_doc_json, STATE.default_timeout);
+    }
 }
 
 function setup_zoom(editor_ob) {
@@ -354,18 +351,6 @@ $(document).ready(function () {
             automaticLayout: true,
             bracketPairColorization: {enabled: true},
         });
-    window.doc_editor =
-        monaco.editor.create(document.getElementById('doc-editor'), {
-            theme: 'vs-yaksha-theme',
-            value: "hello world",
-            language: 'yaksha',
-            automaticLayout: true,
-            bracketPairColorization: {enabled: true},
-            minimap: {enabled: false},
-            wordWrap: "on",
-            readOnly: true,
-        });
-    setTimeout(load_doc, STATE.default_timeout);
     setTimeout(load_doc_json, STATE.default_timeout);
     window.rerender_file_list = debouncer(update_file_list, 100);
     window.save_current_debounced = debouncer(save_current, 300);
@@ -381,7 +366,6 @@ $(document).ready(function () {
         }
     });
     setup_zoom(window.editor);
-    setup_zoom(window.doc_editor);
     STATE.last_saved_version_id = window.editor.getModel().getVersionId();
     STATE.last_edit_version_id = window.editor.getModel().getVersionId();
     $('#loading-animation').remove();

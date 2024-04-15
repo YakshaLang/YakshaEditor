@@ -98,13 +98,6 @@ def list_files(event: w.Event) -> None:
     json: str = file_entries_to_json(f)
     w.return_string(event, cast("c.CStr", json))
 
-def get_documentation(event: w.Event) -> None:
-    state: State = get_state()
-    exe_path: sr = state.exe
-    doc_path: sr = op.join(exe_path, "frontend/docs.yaka")
-    doc: str = io.readfile(doc_path)
-    w.return_string(event, cast("c.CStr", doc))
-
 def get_doc_json(event: w.Event) -> None:
     state: State = get_state()
     exe_path: sr = state.exe
@@ -217,7 +210,6 @@ def main() -> int:
     w.bind(mw, c.cstr!{"openfolder"}, show_open_folder_dialog)
     w.bind(mw, c.cstr!{"explore"}, explore)
     w.bind(mw, c.cstr!{"newfile"}, create_new_file)
-    w.bind(mw, c.cstr!{"getdocumentation"}, get_documentation)
     w.bind(mw, c.cstr!{"getdocjson"}, get_doc_json)
     w.bind(mw, c.cstr!{"compile"}, get_compilation_errors)
 

@@ -1,0 +1,110 @@
+/* Based on https://iamkate.com/code/tree-views/ */
+
+.tree {
+    --spacing: 0.9rem;
+    --radius: 6px;
+    padding-inline-start: 0;
+    font-family: 'Courier New', Courier, monospace;
+}
+
+.red-icon {
+    color: #e64545;
+}
+
+.green-icon {
+    color: #6ae26a;
+}
+
+.blue-icon {
+    color: #4f4ff7;
+}
+
+.yellow-icon {
+    color: #e1e15d;
+}
+
+.purple-icon {
+    color: #b15db1;
+}
+
+.orange-icon {
+    color: #e1a15d;
+}
+
+.cyan-icon {
+    color: #5de1e1;
+}
+
+.pink-icon {
+    color: #e15d9d;
+}
+
+.tree .codicon {
+    vertical-align: -0.3em;
+    margin-right: 0.4em;
+}
+
+.tree li {
+    display: block;
+    position: relative;
+    padding-left: calc(2 * var(--spacing) - var(--radius) - 2px);
+}
+
+.tree ul {
+    margin-left: calc(var(--radius) - var(--spacing));
+    padding-left: 0;
+}
+
+.tree ul li {
+    border-left: 1px solid #666;
+}
+
+
+.tree ul li::before {
+    content: '';
+    display: block;
+    position: absolute;
+    top: calc(var(--spacing) / -2);
+    left: -1px;
+    width: calc(var(--spacing) + 2px);
+    height: calc(var(--spacing) + 1px);
+}
+
+.tree summary {
+    display: block;
+    cursor: pointer;
+}
+
+.tree summary::marker,
+.tree summary::-webkit-details-marker {
+    display: none;
+}
+
+.tree summary:focus {
+    outline: none;
+}
+
+.tree summary:focus-visible {
+    outline: 1px dotted #000;
+}
+
+.tree li::after,
+.tree summary::before {
+    content: '';
+    display: block;
+    position: absolute;
+    top: calc(var(--spacing) / 2 - var(--radius));
+    left: calc(var(--spacing) - var(--radius) - 1px);
+    width: calc(2 * var(--radius));
+    height: calc(2 * var(--radius));
+    border-radius: 50%;
+}
+
+.tree summary::before {
+    z-index: 1;
+    background: url('before-open.svg');
+}
+
+.tree details[open] > summary::before {
+    background: url('open.svg');
+}

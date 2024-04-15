@@ -14,6 +14,7 @@ module.exports = function (grunt) {
                         /* my sources */
                         'js/utils.js',
                         'js/yaksha_mo.js',
+                        'js/yaksha_docs.js',
                         'js/main.js',
                         /** ============ jquery fix ============ */
                         'js/after-scripts.js',
@@ -30,7 +31,8 @@ module.exports = function (grunt) {
                 files: {
                     '../frontend/main.min.css': [
                         '3rdparty/jquery/layout-default.css',
-                        'css/main.css'
+                        'css/main.css',
+                        '3rdparty/treeview/tree.css',
                     ],
                 }
             }

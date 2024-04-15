@@ -45,12 +45,34 @@ button:active {
 
 
 .main-editor, .doc-editor {
-    height: calc(100% - 10px) !important;
-    width: calc(100% - 10px) !important;
-    padding: 5px;
+    height: calc(100% - 2px) !important;
+    width: calc(100% - 2px) !important;
+    padding: 1px;
+}
+
+#doc-editor {
+    font-size: 0.6em;
+    scrollbar-width: thin; /* Adjust the width of the scrollbar */
+    scrollbar-color: #666666 #272765; /* Thumb color Track color */
 }
 
 
+#doc-editor::-webkit-scrollbar-track {
+    background-color: #272765;
+}
+
+#doc-editor::-webkit-scrollbar-thumb {
+    background-color: #666666;
+    border-radius: 10px;
+}
+
+#doc-editor::-webkit-scrollbar-thumb:hover {
+    background-color: #888888;
+}
+
+#doc-editor::-webkit-scrollbar-thumb:active {
+    background-color: #aaaaaa;
+}
 
 #filebrowser {
     font-size: 0.6em;
@@ -197,8 +219,13 @@ body, html, .main-container {
     display: none; /* will appear when layout inits */
 }
 
+.toolbar-parent-pane {
+    overflow: hidden;
+}
+
 .toolbar {
     padding: 5px;
+    overflow: hidden;
 }
 
 .output {
