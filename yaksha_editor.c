@@ -1,10 +1,6 @@
 // YK:arrayutils,console,ini,process,whereami#
 #include "yk__lib.h"
-// --forward declarations-- 
-#define yy__dtraverse_DT_REG (DT_REG)
-#define yy__dtraverse_DT_DIR (DT_DIR)
 #define yy__webui_Event webui_event_t*
-struct yy__dtraverse_Entry;
 #define yy__dtraverse_DirEntryObject struct dirent *
 #define yy__dtraverse_DirObject DIR *
 #define yy__ini_Ini ini_t*
@@ -12,7 +8,18 @@ struct yy__dtraverse_Entry;
 #define yy__c_Size size_t
 #define yy__c_CStr char*
 #define yy__c_CInt int
+#define yy__dtraverse_DT_REG (DT_REG)
+#define yy__dtraverse_DT_DIR (DT_DIR)
 struct yy__State;
+struct yy__dtraverse_Entry;
+struct yy__State {
+    struct yk__bstr yy__yaksha;
+    struct yk__bstr yy__exe;
+};
+struct yy__dtraverse_Entry {
+    yk__sds yy__dtraverse_name;
+    bool yy__dtraverse_is_dir;
+};
 struct yy__dtraverse_Entry** yy__dtraverse_listdir(struct yk__bstr);
 void yy__ini_del_ini(yy__ini_Ini);
 yy__ini_Ini yy__ini_from_str(struct yk__bstr);
@@ -20,7 +27,7 @@ yk__sds yy__ini_get(yy__ini_Ini, struct yk__bstr, struct yk__bstr);
 bool yy__path_forward_slash();
 bool yy__path_end_with_slash(struct yk__bstr);
 yk__sds yy__path_join(struct yk__bstr, struct yk__bstr);
-yk__sds* yy__strings_split(yk__sds, yk__sds);
+yk__sds* yy__strings_split(struct yk__bstr, struct yk__bstr);
 yk__sds yy__os_exe_path();
 yk__sds yy__os_cwd();
 yy__os_ProcessResult yy__os_run(yk__sds*);
@@ -29,8 +36,8 @@ bool yy__os_is_windows();
 bool yy__os_is_macos();
 yk__sds yy__os_getenv(yk__sds);
 yk__sds yy__os_which(yk__sds);
-yk__sds yy__io_readfile(yk__sds);
-bool yy__io_writefile(yk__sds, yk__sds);
+yk__sds yy__io_readfile(struct yk__bstr);
+bool yy__io_writefile(struct yk__bstr, struct yk__bstr);
 struct yk__bstr yy__refs_wrap_cstr_z(yy__c_CStr);
 yk__sds yy__append_char(struct yk__bstr, int32_t);
 yk__sds yy__escape_js_string(struct yk__bstr);
@@ -47,16 +54,6 @@ void yy__create_new_file(yy__webui_Event);
 void yy__change_folder(yy__webui_Event);
 yk__sds yy__get_yaksha_binary(struct yk__bstr);
 int32_t yy__main();
-// --structs-- 
-struct yy__dtraverse_Entry {
-    yk__sds yy__dtraverse_name;
-    bool yy__dtraverse_is_dir;
-};
-struct yy__State {
-    struct yk__bstr yy__yaksha;
-    struct yk__bstr yy__exe;
-};
-// --functions-- 
 struct yy__dtraverse_Entry** yy__dtraverse_listdir(struct yk__bstr yy__dtraverse_directory) 
 {
     struct yy__dtraverse_Entry** yy__dtraverse_entries = NULL;
@@ -165,13 +162,11 @@ yk__sds yy__path_result = yk__sdsempty();
     yk__sds t__7 = yy__path_result;
     return t__7;
 }
-yk__sds* yy__strings_split(yk__sds nn__value, yk__sds nn__sep) 
+yk__sds* yy__strings_split(struct yk__bstr nn__value, struct yk__bstr nn__sep) 
 {
     int count;
-    yk__sds* result = yk__sdssplitlen(nn__value, yk__sdslen(nn__value),
-            nn__sep, yk__sdslen(nn__sep), &count);
-    yk__sdsfree(nn__value);
-    yk__sdsfree(nn__sep);
+    yk__sds* result = yk__sdssplitlen(yk__bstr_get_reference(nn__value), yk__bstr_len(nn__value),
+            yk__bstr_get_reference(nn__sep), yk__bstr_len(nn__sep), &count);
     if (NULL == result) {
         return NULL;
     }
@@ -246,7 +241,7 @@ yk__sds yy__os_which(yk__sds yy__os_binary)
         yk__sdsfree(t__2);
         yk__sdsfree(t__1);
     }
-    yk__sds* yy__os_paths = yy__strings_split(yk__sdsdup(yy__os_env), yk__sdsdup(yy__os_sep));
+    yk__sds* yy__os_paths = yy__strings_split(yk__bstr_h(yy__os_env), yk__bstr_h(yy__os_sep));
     int32_t yy__os_length = yk__arrlen(yy__os_paths);
     while (true)
     {
@@ -481,8 +476,8 @@ yk__sds yy__os_which(yk__sds yy__os_binary)
     yk__sdsfree(yy__os_binary);
     return yk__sdsnewlen("", 0);
 }
-yk__sds yy__io_readfile(yk__sds nn__fname) { return yk__io_readfile(nn__fname); }
-bool yy__io_writefile(yk__sds nn__fname, yk__sds nn__data) { return yk__io_writefile(nn__fname, nn__data); }
+yk__sds yy__io_readfile(struct yk__bstr nn__fname) { return yk__io_readfile(nn__fname); }
+bool yy__io_writefile(struct yk__bstr nn__fname, struct yk__bstr nn__data) { return yk__io_writefile(nn__fname, nn__data); }
 struct yk__bstr yy__refs_wrap_cstr_z(yy__c_CStr yy__refs_s) 
 {
     struct yk__bstr t__0 = yk__bstr_c(yy__refs_s, ((int32_t)strlen(yy__refs_s)));
@@ -649,7 +644,7 @@ void yy__get_doc_json(yy__webui_Event yy__event)
     struct yk__bstr yy__exe_path = yy__state->yy__exe;
     yk__sds t__15 = yy__path_join(yy__exe_path, yk__bstr_s("frontend/docs.json", 18));
     struct yk__bstr yy__doc_path = yk__bstr_h(t__15);
-    yk__sds t__16 = yy__io_readfile(yk__bstr_copy_to_sds(yy__doc_path));
+    yk__sds t__16 = yy__io_readfile(yy__doc_path);
     yk__sds yy__doc = yk__sdsdup(t__16);
     webui_return_string(yy__event, ((yy__c_CStr)yy__doc));
     yk__sdsfree(yy__doc);
@@ -682,7 +677,7 @@ void yy__click_file(yy__webui_Event yy__event)
 {
     yy__c_CStr yy__path_cstr = webui_get_string(yy__event);
     struct yk__bstr yy__path = yy__refs_wrap_cstr_z(yy__path_cstr);
-    yk__sds t__18 = yy__io_readfile(yk__bstr_copy_to_sds(yy__path));
+    yk__sds t__18 = yy__io_readfile(yy__path);
     yk__sds yy__content = yk__sdsdup(t__18);
     webui_return_string(yy__event, ((yy__c_CStr)yy__content));
     yk__sdsfree(yy__content);
@@ -695,7 +690,7 @@ void yy__save_file(yy__webui_Event yy__event)
     struct yk__bstr yy__path = yy__refs_wrap_cstr_z(yy__path_cstr);
     yy__c_CStr yy__content_cstr = webui_get_string_at(yy__event, ((yy__c_Size)INT32_C(1)));
     struct yk__bstr yy__content = yy__refs_wrap_cstr_z(yy__content_cstr);
-    bool yy__success = yy__io_writefile(yk__bstr_copy_to_sds(yy__path), yk__bstr_copy_to_sds(yy__content));
+    bool yy__success = yy__io_writefile(yy__path, yy__content);
     webui_return_string(yy__event, (yy__success ? "OK" : "Failed to save file"));
     return;
 }
@@ -775,7 +770,7 @@ void yy__create_new_file(yy__webui_Event yy__event)
         return;
     }
     struct yk__bstr yy__path = yy__refs_wrap_cstr_z(yy__filename);
-    bool yy__success = yy__io_writefile(yk__bstr_copy_to_sds(yy__path), yk__sdsnewlen("", 0));
+    bool yy__success = yy__io_writefile(yy__path, yk__bstr_s("", 0));
     webui_return_string(yy__event, (yy__success ? yy__filename : ""));
     return;
 }
@@ -808,7 +803,7 @@ yk__sds yy__get_yaksha_binary(struct yk__bstr yy__exe_path)
         yk__sdsfree(t__25);
         return t__27;
     }
-    yk__sds t__28 = yy__io_readfile(yk__sdsdup(yy__ini_path));
+    yk__sds t__28 = yy__io_readfile(yk__bstr_h(yy__ini_path));
     yy__ini_Ini yy__data = yy__ini_from_str(yk__bstr_h(t__28));
     yk__sds t__29 = yy__ini_get(yy__data, yk__bstr_s("compiler", 8), yk__bstr_s("yaksha", 6));
     yk__sds yy__path = yk__sdsdup(t__29);

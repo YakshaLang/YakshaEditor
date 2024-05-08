@@ -22,7 +22,7 @@ class DirObject:
     pass
 
 @nativedefine("opendir")
-def opendir(directory: c.CStr) -> DirObject:
+def opendir(directory: Const[c.CStr]) -> DirObject:
     pass
 
 @nativedefine("readdir")
